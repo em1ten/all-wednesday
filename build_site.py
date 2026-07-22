@@ -78,7 +78,7 @@ def day_bucket(iso: str) -> str:
 
 sources = sorted({a["source"] for a in ARTICLES})
 chips = "".join(
-    f'<button class="chip" data-filter="src:{html.escape(s)}">{html.escape(s)}</button>'
+    f'<button class="srcchip" data-src="{html.escape(s)}" aria-pressed="true">{html.escape(s)}</button>'
     for s in sources
 )
 
@@ -120,9 +120,11 @@ if st:
         f'<div class="fix"><span class="fix-label">League</span>'
         f'{st["position"]}th · P{st["played"]} · {st["points"]}pts</div>'
     )
-if FIXTURES.get("sample"):
-    fix_bits.append('<div class="fix fix-note">sample data — add a football-data.org key</div>')
-fixtures_html = f'<div class="fixbar"><div class="inner">{"".join(fix_bits)}</div></div>' if fix_bits else ""
+fixtures_html = (
+    f'<div class="fixbar"><div class="inner">{"".join(fix_bits)}</div></div>'
+    if fix_bits and not FIXTURES.get("sample", True)
+    else ""
+)
 
 items_html = ""
 current_bucket = None
@@ -214,6 +216,16 @@ page = f"""<!doctype html>
 
   .tagpill {{ border: 1px solid var(--line); color: var(--muted); border-radius: 4px; font-size: .65rem; padding: .1rem .4rem; letter-spacing: .05em; text-transform: uppercase; }}
 
+  .srcpanel {{ margin-top: .5rem; }}
+  .srcpanel summary {{ font-family: "Space Grotesk", monospace; font-size: .78rem; color: var(--muted); cursor: pointer; user-select: none; padding: .2rem 0; }}
+  .srcpanel summary:hover {{ color: var(--blue); }}
+  #src-note {{ color: var(--blue); }}
+  .srchint {{ font-size: .75rem; color: var(--muted); margin: .3rem 0 .5rem; }}
+  .srcchips {{ display: flex; gap: .45rem; flex-wrap: wrap; }}
+  .srcchip {{ font-family: "Space Grotesk", monospace; font-size: .74rem; border: 1px solid var(--line); background: var(--card); color: var(--ink); border-radius: 999px; padding: .25rem .7rem; cursor: pointer; }}
+  .srcchip[aria-pressed="false"] {{ color: var(--muted); background: transparent; text-decoration: line-through; opacity: .6; }}
+  .srcchip:focus-visible {{ outline: 2px solid var(--blue); outline-offset: 2px; }}
+
   .wrap {{ max-width: 720px; margin: 0 auto; padding: 1.2rem; }}
 
   .filters {{ display: flex; gap: .5rem; flex-wrap: wrap; padding-bottom: .4rem; }}
@@ -266,8 +278,12 @@ page = f"""<!doctype html>
     <button class="chip" data-filter="all" aria-pressed="true">All</button>
     <button class="chip" data-filter="official">Official only</button>
     {tag_chips}
-    {chips}
   </div>
+  <details class="srcpanel">
+    <summary>Sources <span id="src-note"></span></summary>
+    <p class="srchint">Tap a source to hide it from your feed (tap again to bring it back). Remembered on this device.</p>
+    <div class="srcchips">{chips}</div>
+  </details>
   {items_html}
 </main>
 
@@ -275,7 +291,7 @@ page = f"""<!doctype html>
   <p>Headlines link straight to the original publishers — read the full stories there.
   Updated {BUILT_AT.strftime('%H:%M UTC, %d %b %Y')}.</p>
   <p>Independent and unofficial — not affiliated with Sheffield Wednesday FC or the EFL.
-  Free and ad-free. If it's useful, <a href="https://ko-fi.com/allwednesday" target="_blank" rel="noopener">you can support it here</a>.</p>
+  Free and ad-free. If it's useful, <a href="#">you can support it here</a>.</p>
 </footer>
 
 <script>
@@ -295,18 +311,27 @@ page = f"""<!doctype html>
     try {{ localStorage.setItem('theme', next); }} catch (e) {{}}
   }});
 
-  // ---- filters + search (combined) ----
+  // ---- filters + search + source toggles (combined) ----
   const chips = document.querySelectorAll('.chip');
+  const srcchips = document.querySelectorAll('.srcchip');
   const search = document.getElementById('search');
+  const srcNote = document.getElementById('src-note');
   let activeFilter = 'all';
+
+  let excluded = new Set();
+  try {{ excluded = new Set(JSON.parse(localStorage.getItem('excludedSources') || '[]')); }} catch (e) {{}}
+
+  function syncSrcChips() {{
+    srcchips.forEach(c => c.setAttribute('aria-pressed', excluded.has(c.dataset.src) ? 'false' : 'true'));
+    srcNote.textContent = excluded.size ? '(' + excluded.size + ' hidden)' : '';
+  }}
 
   function applyView() {{
     const q = search.value.trim().toLowerCase();
     document.querySelectorAll('.item').forEach(item => {{
-      let show = true;
-      if (activeFilter === 'official') show = item.dataset.official === '1';
-      else if (activeFilter.startsWith('src:')) show = item.dataset.source === activeFilter.slice(4);
-      else if (activeFilter.startsWith('tag:')) show = item.dataset.tag === activeFilter.slice(4);
+      let show = !excluded.has(item.dataset.source);
+      if (show && activeFilter === 'official') show = item.dataset.official === '1';
+      else if (show && activeFilter.startsWith('tag:')) show = item.dataset.tag === activeFilter.slice(4);
       if (show && q) show = item.textContent.toLowerCase().includes(q);
       item.classList.toggle('hidden', !show);
     }});
@@ -325,7 +350,18 @@ page = f"""<!doctype html>
     activeFilter = chip.dataset.filter;
     applyView();
   }}));
+
+  srcchips.forEach(chip => chip.addEventListener('click', () => {{
+    const s = chip.dataset.src;
+    if (excluded.has(s)) excluded.delete(s); else excluded.add(s);
+    try {{ localStorage.setItem('excludedSources', JSON.stringify([...excluded])); }} catch (e) {{}}
+    syncSrcChips();
+    applyView();
+  }}));
+
   search.addEventListener('input', applyView);
+  syncSrcChips();
+  applyView();
 </script>
 </body>
 </html>"""
