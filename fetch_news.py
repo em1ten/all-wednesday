@@ -66,6 +66,21 @@ MAX_AGE_DAYS = 7
 EXCERPT_CHARS = 400
 OUT = Path(__file__).parent / "articles.json"
 
+# Normalise the scruffy names Google News reports so the source list
+# stays tidy (one chip per outlet, proper names not domains).
+SOURCE_ALIASES = {
+    "thestar.co.uk": "The Star",
+    "Sheffield Star": "The Star",
+    "BBC Sport": "BBC",
+    "portsmouth.co.uk": "The News (Portsmouth)",
+    "Sheffield Wednesday FC": "SWFC Official",
+    "The English Football League": "EFL Official",
+}
+
+# Any article whose (normalised) source is one of these gets the
+# Official badge, however it arrived.
+OFFICIAL_SOURCE_NAMES = {"SWFC Official", "SWFC YouTube", "EFL Official"}
+
 
 def clean_html(text: str) -> str:
     text = re.sub(r"<[^>]+>", "", text or "")
@@ -96,19 +111,23 @@ def fetch_all() -> list[dict]:
             if ts is None or (now - ts) > MAX_AGE_DAYS * 86400:
                 continue
             title = clean_html(e.get("title", ""))
-            # Google News appends " - Publisher" to titles; strip it
-            title = re.sub(r"\s+-\s+[^-]+$", "", title) if feed["source"] == "Google News" else title
+            # Google News appends " - Publisher" to titles; strip it on any
+            # feed that comes via Google News (incl. official site queries)
+            if "news.google.com" in feed["url"]:
+                title = re.sub(r"\s+-\s+[^-]+$", "", title)
             excerpt = clean_html(e.get("summary", ""))[:EXCERPT_CHARS]
             if not title or not e.get("link"):
                 continue
+            source = feed["source"] if feed["official"] else real_source(e, feed["source"])
+            source = SOURCE_ALIASES.get(source, source)
             articles.append(
                 {
                     "title": title,
                     "url": e["link"],
-                    "source": feed["source"] if feed["official"] else real_source(e, feed["source"]),
+                    "source": source,
                     "published": datetime.fromtimestamp(ts, tz=timezone.utc).isoformat(),
                     "excerpt": excerpt,
-                    "official": feed["official"],
+                    "official": feed["official"] or source in OFFICIAL_SOURCE_NAMES,
                 }
             )
     return articles
@@ -120,12 +139,15 @@ def dedupe(articles: list[dict]) -> list[dict]:
     articles.sort(key=lambda a: a["published"])
     kept: list[dict] = []
     for a in articles:
-        dup = any(
-            SequenceMatcher(None, a["title"].lower(), k["title"].lower()).ratio() > 0.75
-            for k in kept
+        match = next(
+            (i for i, k in enumerate(kept)
+             if SequenceMatcher(None, a["title"].lower(), k["title"].lower()).ratio() > 0.75),
+            None,
         )
-        if not dup:
+        if match is None:
             kept.append(a)
+        elif a.get("official") and not kept[match].get("official"):
+            kept[match] = a  # prefer the official version of a duplicate
     kept.sort(key=lambda a: a["published"], reverse=True)
     return kept
 
