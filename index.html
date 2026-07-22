@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>All Wednesday — Sheffield Wednesday news, no clutter</title>
+<meta name="description" content="Every Sheffield Wednesday headline in one clean, ad-free feed. Links go straight to the original source.">
+<meta property="og:title" content="All Wednesday — every Owls headline, no clutter">
+<meta property="og:description" content="Sheffield Wednesday news from every source in one clean, ad-free feed. Free, updated every 30 minutes.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://example.github.io/all-wednesday/">
+<meta property="og:image" content="https://example.github.io/all-wednesday/share.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="alternate" type="application/rss+xml" title="All Wednesday" href="https://example.github.io/all-wednesday/feed.xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=Source+Sans+3:wght@400;600&family=Space+Grotesk:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --blue: #0353A4;
+    --blue-soft: #7FB2E5;
+    --ink: #0B1F3A;
+    --bg: #F4F7FB;
+    --card: #FFFFFF;
+    --line: #D8E1EC;
+    --muted: #5B6B80;
+    --head-bg: #0B1F3A;
+    --head-fg: #FFFFFF;
+    --stripe-a: #0353A4;
+    --stripe-b: #FFFFFF;
+  }
+  [data-theme="dark"] {
+    --blue: #4E9BE8;
+    --blue-soft: #7FB2E5;
+    --ink: #E8EEF6;
+    --bg: #0A1626;
+    --card: #12233B;
+    --line: #23395A;
+    --muted: #93A6BF;
+    --head-bg: #060F1C;
+    --head-fg: #E8EEF6;
+    --stripe-a: #4E9BE8;
+    --stripe-b: #0A1626;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body { background: var(--bg); color: var(--ink); font-family: "Source Sans 3", sans-serif; line-height: 1.5; }
+
+  header { background: var(--head-bg); color: var(--head-fg); }
+  .stripes { height: 6px; background: repeating-linear-gradient(90deg, var(--stripe-a) 0 28px, var(--stripe-b) 28px 56px); }
+  .mast { max-width: 720px; margin: 0 auto; padding: 1.4rem 1.2rem 1.1rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+  .mast h1 { font-family: "Archivo", sans-serif; font-variation-settings: "wdth" 115; font-weight: 900; font-size: clamp(1.5rem, 5vw, 2.2rem); letter-spacing: .01em; text-transform: uppercase; }
+  .mast h1 span { color: var(--blue-soft); }
+  .mast-right { display: flex; align-items: center; gap: .9rem; }
+  .tag { font-family: "Space Grotesk", monospace; font-size: .78rem; color: var(--blue-soft); opacity: .85; }
+  #theme-toggle { background: transparent; border: 1px solid var(--blue-soft); color: var(--head-fg); border-radius: 999px; font-family: "Space Grotesk", monospace; font-size: .75rem; padding: .3rem .75rem; cursor: pointer; }
+  #theme-toggle:focus-visible { outline: 2px solid var(--blue-soft); outline-offset: 2px; }
+
+  .followbar { background: var(--head-bg); border-top: 1px solid var(--line); }
+  .followbar .inner { max-width: 720px; margin: 0 auto; padding: .5rem 1.2rem .8rem; display: flex; gap: 1rem; flex-wrap: wrap; font-family: "Space Grotesk", monospace; font-size: .74rem; }
+  .followbar span { color: var(--muted); }
+  .followbar a { color: var(--blue-soft); text-decoration: none; }
+  .followbar a:hover { text-decoration: underline; }
+
+  .fixbar { background: var(--card); border-bottom: 1px solid var(--line); }
+  .fixbar .inner { max-width: 720px; margin: 0 auto; padding: .55rem 1.2rem; display: flex; gap: 1.4rem; flex-wrap: wrap; font-family: "Space Grotesk", monospace; font-size: .78rem; color: var(--ink); }
+  .fix-label { color: var(--blue); text-transform: uppercase; font-size: .65rem; letter-spacing: .1em; margin-right: .45rem; }
+  .fix-sub { color: var(--muted); margin-left: .45rem; }
+  .fix-note { color: var(--muted); font-style: italic; }
+
+  #search { width: 100%; font-family: "Source Sans 3", sans-serif; font-size: .95rem; color: var(--ink); background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: .55rem .9rem; margin-bottom: .7rem; }
+  #search:focus-visible { outline: 2px solid var(--blue); outline-offset: 1px; }
+  #search::placeholder { color: var(--muted); }
+
+  .tagpill { border: 1px solid var(--line); color: var(--muted); border-radius: 4px; font-size: .65rem; padding: .1rem .4rem; letter-spacing: .05em; text-transform: uppercase; }
+
+  .wrap { max-width: 720px; margin: 0 auto; padding: 1.2rem; }
+
+  .filters { display: flex; gap: .5rem; flex-wrap: wrap; padding-bottom: .4rem; }
+  .chip { font-family: "Space Grotesk", monospace; font-size: .78rem; border: 1px solid var(--line); background: var(--card); color: var(--muted); border-radius: 999px; padding: .3rem .8rem; cursor: pointer; }
+  .chip[aria-pressed="true"] { background: var(--blue); border-color: var(--blue); color: #fff; }
+  .chip:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+
+  .day { font-family: "Archivo", sans-serif; font-weight: 800; font-size: .85rem; text-transform: uppercase; letter-spacing: .12em; color: var(--blue); margin: 1.6rem 0 .4rem; }
+
+  .item { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: .95rem 1.1rem; margin-top: .6rem; }
+  .item.official { border-left: 3px solid var(--blue); }
+  .meta { display: flex; align-items: center; gap: .7rem; font-family: "Space Grotesk", monospace; font-size: .74rem; color: var(--muted); margin-bottom: .3rem; }
+  .src { color: var(--blue); }
+  .badge { background: var(--blue); color: #fff; border-radius: 4px; font-size: .65rem; padding: .1rem .4rem; letter-spacing: .05em; text-transform: uppercase; }
+  .headline { font-family: "Archivo", sans-serif; font-weight: 700; font-variation-settings: "wdth" 96; font-size: 1.06rem; line-height: 1.3; color: var(--ink); text-decoration: none; display: block; }
+  .headline:hover { color: var(--blue); text-decoration: underline; text-underline-offset: 3px; }
+  .excerpt { font-size: .88rem; color: var(--muted); margin-top: .35rem; }
+
+  footer { max-width: 720px; margin: 2rem auto 3rem; padding: 0 1.2rem; font-size: .8rem; color: var(--muted); }
+  footer a { color: var(--blue); }
+  .hidden { display: none; }
+  @media (prefers-reduced-motion: no-preference) {
+    .item { transition: border-color .15s; }
+    .item:hover { border-color: var(--blue); }
+    body, .item, .chip, header { transition: background-color .2s, color .2s; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="stripes"></div>
+  <div class="mast">
+    <h1>All <span>Wednesday</span></h1>
+    <div class="mast-right">
+      <div class="tag">No ads · links to sources</div>
+      <button id="theme-toggle" aria-label="Switch between light and dark mode">Dark</button>
+    </div>
+  </div>
+  <div class="stripes"></div>
+  <div class="followbar"><div class="inner">
+    <span>Official:</span><a href="https://www.swfc.co.uk" target="_blank" rel="noopener">Club site</a><a href="https://x.com/swfc" target="_blank" rel="noopener">X</a><a href="https://www.instagram.com/swfcofficial" target="_blank" rel="noopener">Instagram</a><a href="https://www.youtube.com/user/swfc" target="_blank" rel="noopener">YouTube</a><a href="https://www.facebook.com/sheffieldwednesday" target="_blank" rel="noopener">Facebook</a><a href="https://www.efl.com" target="_blank" rel="noopener">EFL</a>
+  </div></div>
+</header>
+
+<div class="fixbar"><div class="inner"><div class="fix"><span class="fix-label">Next</span>Sheffield Wed v Sample Town<span class="fix-sub">Sat 25 Jul, 14:00</span></div><div class="fix"><span class="fix-label">Last</span>Sample Rovers 1–2 Sheffield Wed</div><div class="fix"><span class="fix-label">League</span>12th · P0 · 0pts</div><div class="fix fix-note">sample data — add a football-data.org key</div></div></div>
+
+<main class="wrap">
+  <input id="search" type="search" placeholder="Search headlines…" aria-label="Search headlines">
+  <div class="filters" role="group" aria-label="Filter the feed">
+    <button class="chip" data-filter="all" aria-pressed="true">All</button>
+    <button class="chip" data-filter="official">Official only</button>
+    <button class="chip" data-filter="tag:Club news">Club news</button><button class="chip" data-filter="tag:Injuries">Injuries</button><button class="chip" data-filter="tag:Transfers">Transfers</button>
+    <button class="chip" data-filter="src:BBC Sport">BBC Sport</button><button class="chip" data-filter="src:EFL Official">EFL Official</button><button class="chip" data-filter="src:Fan Media">Fan Media</button><button class="chip" data-filter="src:SWFC Official">SWFC Official</button><button class="chip" data-filter="src:SWFC YouTube">SWFC YouTube</button><button class="chip" data-filter="src:The Star">The Star</button><button class="chip" data-filter="src:Yorkshire Live">Yorkshire Live</button>
+  </div>
+  <h2 class="day">Monday 20 July</h2>
+    <article class="item" data-source="BBC Sport" data-official="0" data-tag="Transfers">
+      <div class="meta"><span class="time">2d ago</span><span class="src">BBC Sport</span><span class="tagpill">Transfers</span></div>
+      <a class="headline" href="https://example.com/1" target="_blank" rel="noopener">SAMPLE — Wednesday boss gives team news update ahead of weekend fixture</a>
+      <p class="excerpt">Illustrative placeholder entry. Run fetch_news.py on your machine to replace this file with live headlines from real feeds.</p>
+    </article>
+    <article class="item official" data-source="SWFC Official" data-official="1" data-tag="Club news">
+      <div class="meta"><span class="time">2d ago</span><span class="src">SWFC Official</span><span class="badge">Official</span><span class="tagpill">Club news</span></div>
+      <a class="headline" href="https://example.com/7" target="_blank" rel="noopener">SAMPLE — Club statement: ticket details for opening away fixture</a>
+      <p class="excerpt">Illustrative placeholder showing how an official club-website statement appears with the Official badge.</p>
+    </article>
+    <article class="item" data-source="The Star" data-official="0" data-tag="Transfers">
+      <div class="meta"><span class="time">2d ago</span><span class="src">The Star</span><span class="tagpill">Transfers</span></div>
+      <a class="headline" href="https://example.com/2" target="_blank" rel="noopener">SAMPLE — Transfer latest: Owls linked with League One midfielder</a>
+      <p class="excerpt">Illustrative placeholder entry showing how a transfer story from a local paper would appear in the feed.</p>
+    </article><h2 class="day">Sunday 19 July</h2>
+    <article class="item official" data-source="SWFC YouTube" data-official="1" data-tag="Transfers">
+      <div class="meta"><span class="time">2d ago</span><span class="src">SWFC YouTube</span><span class="badge">Official</span><span class="tagpill">Transfers</span></div>
+      <a class="headline" href="https://example.com/8" target="_blank" rel="noopener">SAMPLE — Matchday highlights: pre-season friendly</a>
+      <p class="excerpt">Illustrative placeholder for an official YouTube video appearing in the feed via YouTube RSS.</p>
+    </article>
+    <article class="item" data-source="Yorkshire Live" data-official="0" data-tag="Transfers">
+      <div class="meta"><span class="time">2d ago</span><span class="src">Yorkshire Live</span><span class="tagpill">Transfers</span></div>
+      <a class="headline" href="https://example.com/3" target="_blank" rel="noopener">SAMPLE — Academy graduate signs first professional contract at Hillsborough</a>
+      <p class="excerpt">Illustrative placeholder entry demonstrating a youth-team story appearing from a second local source.</p>
+    </article>
+    <article class="item" data-source="Fan Media" data-official="0" data-tag="Transfers">
+      <div class="meta"><span class="time">3d ago</span><span class="src">Fan Media</span><span class="tagpill">Transfers</span></div>
+      <a class="headline" href="https://example.com/4" target="_blank" rel="noopener">SAMPLE — Opinion: what pre-season has told us about Wednesday&#x27;s shape</a>
+      <p class="excerpt">Illustrative placeholder showing how fan-site analysis pieces sit alongside mainstream coverage in the same feed.</p>
+    </article><h2 class="day">Saturday 18 July</h2>
+    <article class="item official" data-source="EFL Official" data-official="1" data-tag="Club news">
+      <div class="meta"><span class="time">3d ago</span><span class="src">EFL Official</span><span class="badge">Official</span><span class="tagpill">Club news</span></div>
+      <a class="headline" href="https://example.com/9" target="_blank" rel="noopener">SAMPLE — EFL confirms fixture amendments for broadcast selection</a>
+      <p class="excerpt">Illustrative placeholder for a league announcement mentioning the club.</p>
+    </article>
+    <article class="item" data-source="BBC Sport" data-official="0" data-tag="Injuries">
+      <div class="meta"><span class="time">4d ago</span><span class="src">BBC Sport</span><span class="tagpill">Injuries</span></div>
+      <a class="headline" href="https://example.com/6" target="_blank" rel="noopener">SAMPLE — Injury update on defender after friendly knock</a>
+      <p class="excerpt">Illustrative placeholder entry for an injury-news story.</p>
+    </article>
+</main>
+
+<footer>
+  <p>Headlines link straight to the original publishers — read the full stories there.
+  Updated 15:18 UTC, 22 Jul 2026.</p>
+  <p>Independent and unofficial — not affiliated with Sheffield Wednesday FC or the EFL.
+  Free and ad-free. If it's useful, <a href="#">you can support it here</a>.</p>
+</footer>
+
+<script>
+  // ---- theme ----
+  const root = document.documentElement;
+  const toggle = document.getElementById('theme-toggle');
+  function applyTheme(t) {
+    root.setAttribute('data-theme', t);
+    toggle.textContent = t === 'dark' ? 'Light' : 'Dark';
+  }
+  let saved = null;
+  try { saved = localStorage.getItem('theme'); } catch (e) {}
+  applyTheme(saved || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
+  toggle.addEventListener('click', () => {
+    const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    applyTheme(next);
+    try { localStorage.setItem('theme', next); } catch (e) {}
+  });
+
+  // ---- filters + search (combined) ----
+  const chips = document.querySelectorAll('.chip');
+  const search = document.getElementById('search');
+  let activeFilter = 'all';
+
+  function applyView() {
+    const q = search.value.trim().toLowerCase();
+    document.querySelectorAll('.item').forEach(item => {
+      let show = true;
+      if (activeFilter === 'official') show = item.dataset.official === '1';
+      else if (activeFilter.startsWith('src:')) show = item.dataset.source === activeFilter.slice(4);
+      else if (activeFilter.startsWith('tag:')) show = item.dataset.tag === activeFilter.slice(4);
+      if (show && q) show = item.textContent.toLowerCase().includes(q);
+      item.classList.toggle('hidden', !show);
+    });
+    document.querySelectorAll('.day').forEach(day => {
+      let el = day.nextElementSibling, any = false;
+      while (el && !el.classList.contains('day')) {
+        if (el.classList.contains('item') && !el.classList.contains('hidden')) any = true;
+        el = el.nextElementSibling;
+      }
+      day.classList.toggle('hidden', !any);
+    });
+  }
+
+  chips.forEach(chip => chip.addEventListener('click', () => {
+    chips.forEach(c => c.setAttribute('aria-pressed', c === chip));
+    activeFilter = chip.dataset.filter;
+    applyView();
+  }));
+  search.addEventListener('input', applyView);
+</script>
+</body>
+</html>

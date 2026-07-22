@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+<channel>
+  <title>All Wednesday</title>
+  <link>https://example.github.io/all-wednesday/</link>
+  <description>Every Sheffield Wednesday headline in one clean feed. Links go to the original publishers.</description>
+  <language>en-gb</language>
+  <lastBuildDate>Wed, 22 Jul 2026 15:18:14 +0000</lastBuildDate>
+  <item>
+    <title>SAMPLE — Wednesday boss gives team news update ahead of weekend fixture</title>
+    <link>https://example.com/1</link>
+    <guid isPermaLink="true">https://example.com/1</guid>
+    <pubDate>Mon, 20 Jul 2026 08:10:00 +0000</pubDate>
+    <description>Illustrative placeholder entry. Run fetch_news.py on your machine to replace this file with live headlines from real feeds. — BBC Sport</description>
+  </item>
+  <item>
+    <title>SAMPLE — Club statement: ticket details for opening away fixture</title>
+    <link>https://example.com/7</link>
+    <guid isPermaLink="true">https://example.com/7</guid>
+    <pubDate>Mon, 20 Jul 2026 07:30:00 +0000</pubDate>
+    <description>Illustrative placeholder showing how an official club-website statement appears with the Official badge. — SWFC Official</description>
+  </item>
+  <item>
+    <title>SAMPLE — Transfer latest: Owls linked with League One midfielder</title>
+    <link>https://example.com/2</link>
+    <guid isPermaLink="true">https://example.com/2</guid>
+    <pubDate>Mon, 20 Jul 2026 06:45:00 +0000</pubDate>
+    <description>Illustrative placeholder entry showing how a transfer story from a local paper would appear in the feed. — The Star</description>
+  </item>
+  <item>
+    <title>SAMPLE — Matchday highlights: pre-season friendly</title>
+    <link>https://example.com/8</link>
+    <guid isPermaLink="true">https://example.com/8</guid>
+    <pubDate>Sun, 19 Jul 2026 20:15:00 +0000</pubDate>
+    <description>Illustrative placeholder for an official YouTube video appearing in the feed via YouTube RSS. — SWFC YouTube</description>
+  </item>
+  <item>
+    <title>SAMPLE — Academy graduate signs first professional contract at Hillsborough</title>
+    <link>https://example.com/3</link>
+    <guid isPermaLink="true">https://example.com/3</guid>
+    <pubDate>Sun, 19 Jul 2026 17:30:00 +0000</pubDate>
+    <description>Illustrative placeholder entry demonstrating a youth-team story appearing from a second local source. — Yorkshire Live</description>
+  </item>
+  <item>
+    <title>SAMPLE — Opinion: what pre-season has told us about Wednesday&#x27;s shape</title>
+    <link>https://example.com/4</link>
+    <guid isPermaLink="true">https://example.com/4</guid>
+    <pubDate>Sun, 19 Jul 2026 12:00:00 +0000</pubDate>
+    <description>Illustrative placeholder showing how fan-site analysis pieces sit alongside mainstream coverage in the same feed. — Fan Media</description>
+  </item>
+  <item>
+    <title>SAMPLE — EFL confirms fixture amendments for broadcast selection</title>
+    <link>https://example.com/9</link>
+    <guid isPermaLink="true">https://example.com/9</guid>
+    <pubDate>Sat, 18 Jul 2026 16:00:00 +0000</pubDate>
+    <description>Illustrative placeholder for a league announcement mentioning the club. — EFL Official</description>
+  </item>
+  <item>
+    <title>SAMPLE — Injury update on defender after friendly knock</title>
+    <link>https://example.com/6</link>
+    <guid isPermaLink="true">https://example.com/6</guid>
+    <pubDate>Sat, 18 Jul 2026 09:05:00 +0000</pubDate>
+    <description>Illustrative placeholder entry for an injury-news story. — BBC Sport</description>
+  </item>
+</channel>
+</rss>

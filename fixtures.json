@@ -1,0 +1,6 @@
+{
+  "sample": true,
+  "next": {"home": "Sheffield Wed", "away": "Sample Town", "date": "2026-07-25T14:00:00Z", "competition": "Pre-season", "score": null},
+  "last": {"home": "Sample Rovers", "away": "Sheffield Wed", "date": "2026-07-18T14:00:00Z", "competition": "Pre-season", "score": "1–2"},
+  "standing": {"position": 12, "played": 0, "points": 0}
+}
