@@ -14,6 +14,7 @@ Run:  python3 fetch_news.py
 
 from __future__ import annotations
 
+import html as htmllib
 import json
 import re
 import time
@@ -62,12 +63,14 @@ FEEDS = [
 ]
 
 MAX_AGE_DAYS = 7
-EXCERPT_CHARS = 180
+EXCERPT_CHARS = 400
 OUT = Path(__file__).parent / "articles.json"
 
 
 def clean_html(text: str) -> str:
     text = re.sub(r"<[^>]+>", "", text or "")
+    text = htmllib.unescape(text)          # &nbsp; &amp; &#39; etc -> real chars
+    text = text.replace("\xa0", " ")       # non-breaking spaces -> spaces
     return re.sub(r"\s+", " ", text).strip()
 
 
@@ -75,7 +78,7 @@ def real_source(entry, fallback: str) -> str:
     """Google News entries carry the actual publisher in entry.source."""
     src = getattr(entry, "source", None)
     if src and getattr(src, "title", None):
-        return src.title
+        return clean_html(src.title)
     return fallback
 
 
