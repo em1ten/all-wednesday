@@ -275,7 +275,7 @@ page = f"""<!doctype html>
   <p>Headlines link straight to the original publishers — read the full stories there.
   Updated {BUILT_AT.strftime('%H:%M UTC, %d %b %Y')}.</p>
   <p>Independent and unofficial — not affiliated with Sheffield Wednesday FC or the EFL.
-  Free and ad-free. If it's useful, <a href="#">you can support it here</a>.</p>
+  Free and ad-free. If it's useful, <a href="https://ko-fi.com/allwednesday" target="_blank" rel="noopener">you can support it here</a>.</p>
 </footer>
 
 <script>
