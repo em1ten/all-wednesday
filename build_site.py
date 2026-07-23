@@ -49,7 +49,7 @@ OFFICIAL_LINKS = [
     ("Club site", "https://www.swfc.co.uk"),
     ("X", "https://x.com/swfc"),
     ("Instagram", "https://www.instagram.com/swfcofficial"),
-    ("YouTube", "https://www.youtube.com/feeds/videos.xml?channel_id=UCXRpYvFmY12TMKet-E0w_Cw"),
+    ("YouTube", "https://www.youtube.com/user/officialswfc"),
     ("Facebook", "https://www.facebook.com/sheffieldwednesday"),
     ("EFL", "https://www.efl.com"),
 ]
@@ -171,19 +171,21 @@ page = f"""<!doctype html>
     --head-fg: #FFFFFF;
     --stripe-a: #0353A4;
     --stripe-b: #FFFFFF;
+    --badge-fg: #FFFFFF;
   }}
   [data-theme="dark"] {{
-    --blue: #4E9BE8;
-    --blue-soft: #7FB2E5;
-    --ink: #E8EEF6;
-    --bg: #0A1626;
-    --card: #12233B;
-    --line: #23395A;
-    --muted: #93A6BF;
-    --head-bg: #060F1C;
-    --head-fg: #E8EEF6;
-    --stripe-a: #4E9BE8;
-    --stripe-b: #0A1626;
+    --blue: #F5C518;
+    --blue-soft: #FFDE70;
+    --ink: #F2F0E8;
+    --bg: #0A0A0A;
+    --card: #171717;
+    --line: #2C2A24;
+    --muted: #A3A08F;
+    --head-bg: #0D0D0D;
+    --head-fg: #F2F0E8;
+    --stripe-a: #F5C518;
+    --stripe-b: #0A0A0A;
+    --badge-fg: #14110A;
   }}
   * {{ box-sizing: border-box; margin: 0; }}
   body {{ background: var(--bg); color: var(--ink); font-family: "Source Sans 3", sans-serif; line-height: 1.5; }}
@@ -192,16 +194,16 @@ page = f"""<!doctype html>
   .stripes {{ height: 6px; background: repeating-linear-gradient(90deg, var(--stripe-a) 0 28px, var(--stripe-b) 28px 56px); }}
   .mast {{ max-width: 720px; margin: 0 auto; padding: 1.4rem 1.2rem 1.1rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }}
   .mast h1 {{ font-family: "Archivo", sans-serif; font-variation-settings: "wdth" 115; font-weight: 900; font-size: clamp(1.5rem, 5vw, 2.2rem); letter-spacing: .01em; text-transform: uppercase; }}
-  .mast h1 span {{ color: var(--blue-soft); }}
+  .mast h1 span {{ color: var(--head-fg); }}
   .mast-right {{ display: flex; align-items: center; gap: .9rem; }}
-  .tag {{ font-family: "Space Grotesk", monospace; font-size: .78rem; color: var(--blue-soft); opacity: .85; }}
-  #theme-toggle {{ background: transparent; border: 1px solid var(--blue-soft); color: var(--head-fg); border-radius: 999px; font-family: "Space Grotesk", monospace; font-size: .75rem; padding: .3rem .75rem; cursor: pointer; }}
-  #theme-toggle:focus-visible {{ outline: 2px solid var(--blue-soft); outline-offset: 2px; }}
+  .tag {{ font-family: "Space Grotesk", monospace; font-size: .78rem; color: var(--head-fg); opacity: .85; }}
+  #theme-toggle {{ background: transparent; border: 1px solid var(--head-fg); color: var(--head-fg); border-radius: 999px; font-family: "Space Grotesk", monospace; font-size: .75rem; padding: .3rem .75rem; cursor: pointer; }}
+  #theme-toggle:focus-visible {{ outline: 2px solid var(--head-fg); outline-offset: 2px; }}
 
   .followbar {{ background: var(--head-bg); border-top: 1px solid var(--line); }}
   .followbar .inner {{ max-width: 720px; margin: 0 auto; padding: .5rem 1.2rem .8rem; display: flex; gap: 1rem; flex-wrap: wrap; font-family: "Space Grotesk", monospace; font-size: .74rem; }}
-  .followbar span {{ color: var(--muted); }}
-  .followbar a {{ color: var(--blue-soft); text-decoration: none; }}
+  .followbar span {{ color: var(--head-fg); opacity: .85; }}
+  .followbar a {{ color: var(--head-fg); text-decoration: none; }}
   .followbar a:hover {{ text-decoration: underline; }}
 
   .fixbar {{ background: var(--card); border-bottom: 1px solid var(--line); }}
@@ -230,7 +232,7 @@ page = f"""<!doctype html>
 
   .filters {{ display: flex; gap: .5rem; flex-wrap: wrap; padding-bottom: .4rem; }}
   .chip {{ font-family: "Space Grotesk", monospace; font-size: .78rem; border: 1px solid var(--line); background: var(--card); color: var(--muted); border-radius: 999px; padding: .3rem .8rem; cursor: pointer; }}
-  .chip[aria-pressed="true"] {{ background: var(--blue); border-color: var(--blue); color: #fff; }}
+  .chip[aria-pressed="true"] {{ background: var(--blue); border-color: var(--blue); color: var(--badge-fg); }}
   .chip:focus-visible {{ outline: 2px solid var(--blue); outline-offset: 2px; }}
 
   .day {{ font-family: "Archivo", sans-serif; font-weight: 800; font-size: .85rem; text-transform: uppercase; letter-spacing: .12em; color: var(--blue); margin: 1.6rem 0 .4rem; }}
@@ -239,7 +241,7 @@ page = f"""<!doctype html>
   .item.official {{ border-left: 3px solid var(--blue); }}
   .meta {{ display: flex; align-items: center; gap: .7rem; font-family: "Space Grotesk", monospace; font-size: .74rem; color: var(--muted); margin-bottom: .3rem; }}
   .src {{ color: var(--blue); }}
-  .badge {{ background: var(--blue); color: #fff; border-radius: 4px; font-size: .65rem; padding: .1rem .4rem; letter-spacing: .05em; text-transform: uppercase; }}
+  .badge {{ background: var(--blue); color: var(--badge-fg); border-radius: 4px; font-size: .65rem; padding: .1rem .4rem; letter-spacing: .05em; text-transform: uppercase; }}
   .headline {{ font-family: "Archivo", sans-serif; font-weight: 700; font-variation-settings: "wdth" 96; font-size: 1.06rem; line-height: 1.3; color: var(--ink); text-decoration: none; display: block; }}
   .headline:hover {{ color: var(--blue); text-decoration: underline; text-underline-offset: 3px; }}
   .excerpt {{ font-size: .88rem; color: var(--muted); margin-top: .35rem; }}
