@@ -20,7 +20,7 @@ BUILT_AT = datetime.now(timezone.utc)
 
 # Set this to your real URL once deployed (needed for social link previews
 # and the RSS feed) e.g. "https://yourusername.github.io/all-wednesday"
-SITE_URL = "https://example.github.io/all-wednesday"
+SITE_URL = "https://allwednesday.uk"
 
 try:
     FIXTURES = json.loads((HERE / "fixtures.json").read_text())
