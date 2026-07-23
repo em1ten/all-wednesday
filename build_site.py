@@ -49,7 +49,7 @@ OFFICIAL_LINKS = [
     ("Club site", "https://www.swfc.co.uk"),
     ("X", "https://x.com/swfc"),
     ("Instagram", "https://www.instagram.com/swfcofficial"),
-    ("YouTube", "https://www.youtube.com/@officialswfc"),
+    ("YouTube", "https://www.youtube.com/feeds/videos.xml?channel_id=UCXRpYvFmY12TMKet-E0w_Cw"),
     ("Facebook", "https://www.facebook.com/sheffieldwednesday"),
     ("EFL", "https://www.efl.com"),
 ]
