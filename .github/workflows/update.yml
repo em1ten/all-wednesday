@@ -2,7 +2,7 @@ name: Update All Wednesday
 
 on:
   schedule:
-    - cron: "*/30 * * * *"   # refresh every 30 minutes
+    - cron: "15,45 * * * *"   # refresh every 30 minutes
   workflow_dispatch:          # manual "run now" button
   push:
     branches: [main]
