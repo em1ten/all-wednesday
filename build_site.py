@@ -22,6 +22,11 @@ BUILT_AT = datetime.now(timezone.utc)
 # and the RSS feed) e.g. "https://yourusername.github.io/all-wednesday"
 SITE_URL = "https://allwednesday.uk"
 
+# Free, cookie-free analytics: https://www.goatcounter.com/ (no signup cost).
+# Sign up, then put your code here (the bit before ".goatcounter.com").
+# Leave blank to skip analytics entirely — nothing breaks either way.
+GOATCOUNTER_CODE = ""
+
 try:
     FIXTURES = json.loads((HERE / "fixtures.json").read_text())
 except FileNotFoundError:
@@ -156,6 +161,8 @@ page = f"""<!doctype html>
 <meta property="og:image" content="{SITE_URL}/share.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="alternate" type="application/rss+xml" title="All Wednesday" href="{SITE_URL}/feed.xml">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+{f'<script data-goatcounter="https://{GOATCOUNTER_CODE}.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>' if GOATCOUNTER_CODE else ''}
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=Source+Sans+3:wght@400;600&family=Space+Grotesk:wght@500&display=swap" rel="stylesheet">
 <style>
@@ -397,5 +404,16 @@ rss = f"""<?xml version="1.0" encoding="UTF-8"?>
 </rss>"""
 (HERE / "feed.xml").write_text(rss)
 
+# ---- sitemap.xml (for Google Search Console) ----
+sitemap = f"""<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>{SITE_URL}/</loc>
+    <lastmod>{BUILT_AT.strftime('%Y-%m-%d')}</lastmod>
+    <changefreq>hourly</changefreq>
+  </url>
+</urlset>"""
+(HERE / "sitemap.xml").write_text(sitemap)
+
 n_official = sum(1 for a in ARTICLES if a.get("official"))
-print(f"Built index.html + feed.xml: {len(ARTICLES)} articles ({n_official} official), tags: {', '.join(used_tags) or 'none'}")
+print(f"Built index.html + feed.xml + sitemap.xml: {len(ARTICLES)} articles ({n_official} official), tags: {', '.join(used_tags) or 'none'}")
