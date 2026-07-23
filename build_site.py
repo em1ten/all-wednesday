@@ -25,7 +25,7 @@ SITE_URL = "https://allwednesday.uk"
 # Free, cookie-free analytics: https://www.goatcounter.com/ (no signup cost).
 # Sign up, then put your code here (the bit before ".goatcounter.com").
 # Leave blank to skip analytics entirely — nothing breaks either way.
-GOATCOUNTER_CODE = ""
+GOATCOUNTER_CODE = "allwednesday"
 
 try:
     FIXTURES = json.loads((HERE / "fixtures.json").read_text())
