@@ -142,7 +142,7 @@ for a in ARTICLES:
     tagpill = f'<span class="tagpill">{html.escape(a["tag"])}</span>' if a.get("tag") else ""
     items_html += f"""
     <article class="item{' official' if a.get('official') else ''}" data-source="{html.escape(a['source'])}" data-official="{'1' if a.get('official') else '0'}" data-tag="{html.escape(a.get('tag') or '')}">
-      <div class="meta"><span class="time">{rel_time(a['published'])}</span><span class="src">{html.escape(a['source'])}</span>{badge}{tagpill}</div>
+      <div class="meta"><span class="time" data-published="{html.escape(a['published'])}">{rel_time(a['published'])}</span><span class="src">{html.escape(a['source'])}</span>{badge}{tagpill}</div>
       <a class="headline" href="{html.escape(a['url'])}" target="_blank" rel="noopener">{html.escape(a['title'])}</a>
       {f'<p class="excerpt">{html.escape(a["excerpt"])}</p>' if a.get('excerpt') else ''}
     </article>"""
@@ -371,6 +371,25 @@ page = f"""<!doctype html>
   search.addEventListener('input', applyView);
   syncSrcChips();
   applyView();
+
+  // ---- live relative time (recalculated in-browser, not baked in at
+  // build time — keeps "Xm/Xh ago" accurate even if the page sits open
+  // for hours between rebuilds) ----
+  function relTimeFromISO(iso) {{
+    const then = new Date(iso).getTime();
+    const mins = Math.max(1, Math.round((Date.now() - then) / 60000));
+    if (mins < 60) return mins + 'm ago';
+    const hours = Math.round(mins / 60);
+    if (hours < 24) return hours + 'h ago';
+    return Math.round(hours / 24) + 'd ago';
+  }}
+  function refreshTimes() {{
+    document.querySelectorAll('.time[data-published]').forEach(el => {{
+      el.textContent = relTimeFromISO(el.dataset.published);
+    }});
+  }}
+  refreshTimes();
+  setInterval(refreshTimes, 60000);
 </script>
 </body>
 </html>"""
