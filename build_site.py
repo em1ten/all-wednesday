@@ -13,10 +13,12 @@ import html
 import json
 from datetime import datetime, timezone
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 HERE = Path(__file__).parent
 ARTICLES = json.loads((HERE / "articles.json").read_text())
 BUILT_AT = datetime.now(timezone.utc)
+BUILT_AT_UK = BUILT_AT.astimezone(ZoneInfo("Europe/London"))
 
 # Set this to your real URL once deployed (needed for social link previews
 # and the RSS feed) e.g. "https://yourusername.github.io/all-wednesday"
@@ -298,7 +300,7 @@ page = f"""<!doctype html>
 
 <footer>
   <p>Headlines link straight to the original publishers — read the full stories there.
-  Updated {BUILT_AT.strftime('%H:%M UTC, %d %b %Y')}.</p>
+  Updated {BUILT_AT_UK.strftime('%H:%M')} UK time, {BUILT_AT_UK.strftime('%d %b %Y')}.</p>
   <p>Independent and unofficial — not affiliated with Sheffield Wednesday FC or the EFL.
   Free and ad-free. If it's useful, <a href="https://ko-fi.com/allwednesday" target="_blank" rel="noopener">you can support it here</a>.</p>
 </footer>
