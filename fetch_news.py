@@ -111,7 +111,7 @@ FETCH_HEADERS = {
 # Blades") stories through since they share a city and league. Drop a
 # story if it's clearly about United and doesn't also mention Wednesday
 # (genuine derby/crossover stories mentioning both are kept).
-UNITED_MARKERS = ("sheffield united", "blades")
+UNITED_MARKERS = ("sheffield united", "blades", "sufc")
 WEDNESDAY_MARKERS = ("sheffield wednesday", "swfc", "owls", "hillsborough")
 
 
@@ -120,6 +120,19 @@ def is_wrong_club(title: str, excerpt: str) -> bool:
     mentions_united = any(m in text for m in UNITED_MARKERS)
     mentions_wednesday = any(m in text for m in WEDNESDAY_MARKERS)
     return mentions_united and not mentions_wednesday
+
+
+def is_off_topic(title: str, excerpt: str) -> bool:
+    """For general/loosely-matched feeds (BBC team feed, Google News): if
+    the story doesn't mention Wednesday in any recognised form, it's not
+    really about Wednesday, whichever other club or player it follows.
+    (e.g. a former player's news at their new club can slip through team-
+    tagged feeds). Official feeds skip this check — they're already
+    scoped by URL, and short titles like "Highlights" or "Pre-season in
+    Hungary!" are legitimately on-topic without repeating the club name.
+    """
+    text = f"{title} {excerpt}".lower()
+    return not any(m in text for m in WEDNESDAY_MARKERS)
 
 
 def fetch_all() -> list[dict]:
@@ -155,6 +168,8 @@ def fetch_all() -> list[dict]:
             if not title or not e.get("link"):
                 continue
             if is_wrong_club(title, excerpt):
+                continue
+            if not feed["official"] and is_off_topic(title, excerpt):
                 continue
             source = feed["source"] if feed["official"] else real_source(e, feed["source"])
             source = SOURCE_ALIASES.get(source, source)
