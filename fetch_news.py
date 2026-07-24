@@ -49,7 +49,7 @@ FEEDS = [
         # Find the channel ID: open the channel page, View Source, search
         # for "channelId" (starts with UC...), then replace below.
         "source": "SWFC YouTube",
-        "url": "https://www.youtube.com/feeds/videos.xml?channel_id=REPLACE_WITH_CHANNEL_ID",
+        "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCXRpYvFmY12TMKet-E0w_Cw",
         "official": True,
     },
     {
@@ -97,11 +97,47 @@ def real_source(entry, fallback: str) -> str:
     return fallback
 
 
+FETCH_HEADERS = {
+    # A plain/default user-agent gets rate-limited or blocked by Google News
+    # more often than a normal browser identity does. This isn't foolproof,
+    # but it noticeably reduces silent empty-feed failures.
+    "User-Agent": (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+        "(KHTML, like Gecko) Chrome/124.0 Safari/537.36"
+    )
+}
+
+# Google News' relevance matching sometimes lets Sheffield United ("the
+# Blades") stories through since they share a city and league. Drop a
+# story if it's clearly about United and doesn't also mention Wednesday
+# (genuine derby/crossover stories mentioning both are kept).
+UNITED_MARKERS = ("sheffield united", "blades")
+WEDNESDAY_MARKERS = ("sheffield wednesday", "swfc", "owls", "hillsborough")
+
+
+def is_wrong_club(title: str, excerpt: str) -> bool:
+    text = f"{title} {excerpt}".lower()
+    mentions_united = any(m in text for m in UNITED_MARKERS)
+    mentions_wednesday = any(m in text for m in WEDNESDAY_MARKERS)
+    return mentions_united and not mentions_wednesday
+
+
 def fetch_all() -> list[dict]:
     now = time.time()
     articles = []
     for feed in FEEDS:
-        parsed = feedparser.parse(feed["url"])
+        try:
+            parsed = feedparser.parse(feed["url"], request_headers=FETCH_HEADERS)
+        except Exception as e:
+            print(f"  [WARN] {feed['source']}: fetch raised {e} — skipping this feed")
+            continue
+
+        n_entries = len(parsed.entries)
+        if parsed.get("bozo") and n_entries == 0:
+            print(f"  [WARN] {feed['source']}: feed errored/empty (bozo={parsed.get('bozo_exception')})")
+        else:
+            print(f"  [ok] {feed['source']}: {n_entries} entries returned")
+
         for e in parsed.entries:
             ts = None
             for attr in ("published_parsed", "updated_parsed"):
@@ -117,6 +153,8 @@ def fetch_all() -> list[dict]:
                 title = re.sub(r"\s+-\s+[^-]+$", "", title)
             excerpt = clean_html(e.get("summary", ""))[:EXCERPT_CHARS]
             if not title or not e.get("link"):
+                continue
+            if is_wrong_club(title, excerpt):
                 continue
             source = feed["source"] if feed["official"] else real_source(e, feed["source"])
             source = SOURCE_ALIASES.get(source, source)
