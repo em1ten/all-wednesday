@@ -155,9 +155,9 @@ page = f"""<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>The Wednesday Times — Sheffield Wednesday news, no clutter</title>
-<meta name="description" content="Every Sheffield Wednesday headline in one clean, ad-free feed. Links go straight to the original source.">
-<meta property="og:title" content="The Wednesday Times — every Owls headline, no clutter">
-<meta property="og:description" content="Sheffield Wednesday news from every source in one clean, ad-free feed. Free, updated every 30 minutes.">
+<meta name="description" content="Sheffield Wednesday headlines in one clean, ad-free feed. Links go straight to the original source.">
+<meta property="og:title" content="The Wednesday Times — Owls headlines, no clutter">
+<meta property="og:description" content="Sheffield Wednesday news from multiple sources in one clean, ad-free feed. Free, updated every 30 minutes.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="{SITE_URL}/">
 <meta property="og:image" content="{SITE_URL}/share.png">
@@ -199,18 +199,21 @@ page = f"""<!doctype html>
   * {{ box-sizing: border-box; margin: 0; }}
   body {{ background: var(--bg); color: var(--ink); font-family: "Source Sans 3", sans-serif; line-height: 1.5; }}
 
-  header {{ background: #FFFFFF; color: #16233B; border-bottom: 3px solid #16233B; }}
+  header {{ background: var(--card); color: var(--ink); border-bottom: 3px solid var(--ink); }}
   .mast {{ max-width: 720px; margin: 0 auto; padding: 1rem 1.2rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }}
-  .logo {{ height: 56px; width: auto; display: block; }}
+  .wordmark {{ text-align: center; line-height: 1; }}
+  .wm-rule {{ border-top: 1.5px solid var(--ink); margin: .25rem auto; max-width: 340px; }}
+  .wm-the, .wm-times {{ font-family: Georgia, "Times New Roman", serif; font-style: italic; font-size: .8rem; color: var(--ink); margin: .1rem 0; }}
+  .wm-wednesday {{ font-family: "Archivo", sans-serif; font-variation-settings: "wdth" 115; font-weight: 900; font-size: clamp(1.7rem, 6vw, 2.5rem); letter-spacing: .01em; text-transform: uppercase; color: var(--ink); margin: .05rem 0; }}
   .mast-right {{ display: flex; align-items: center; gap: .9rem; }}
-  .tag {{ font-family: "Space Grotesk", monospace; font-size: .78rem; color: #5B6B80; }}
-  #theme-toggle {{ background: transparent; border: 1px solid #16233B; color: #16233B; border-radius: 999px; font-family: "Space Grotesk", monospace; font-size: .75rem; padding: .3rem .75rem; cursor: pointer; }}
-  #theme-toggle:focus-visible {{ outline: 2px solid #16233B; outline-offset: 2px; }}
+  .tag {{ font-family: "Space Grotesk", monospace; font-size: .78rem; color: var(--muted); }}
+  #theme-toggle {{ background: transparent; border: 1px solid var(--ink); color: var(--ink); border-radius: 999px; font-family: "Space Grotesk", monospace; font-size: .75rem; padding: .3rem .75rem; cursor: pointer; }}
+  #theme-toggle:focus-visible {{ outline: 2px solid var(--ink); outline-offset: 2px; }}
 
-  .followbar {{ background: #F4F7FB; border-top: 1px solid #D8E1EC; border-bottom: 1px solid #D8E1EC; }}
+  .followbar {{ background: var(--bg); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }}
   .followbar .inner {{ max-width: 720px; margin: 0 auto; padding: .5rem 1.2rem .8rem; display: flex; gap: 1rem; flex-wrap: wrap; font-family: "Space Grotesk", monospace; font-size: .74rem; }}
-  .followbar span {{ color: #5B6B80; }}
-  .followbar a {{ color: #0353A4; text-decoration: none; }}
+  .followbar span {{ color: var(--muted); }}
+  .followbar a {{ color: var(--blue); text-decoration: none; }}
   .followbar a:hover {{ text-decoration: underline; }}
 
   .fixbar {{ background: var(--card); border-bottom: 1px solid var(--line); }}
@@ -266,7 +269,13 @@ page = f"""<!doctype html>
 <body>
 <header>
   <div class="mast">
-    <img class="logo" src="logo.png" alt="The Wednesday Times">
+    <div class="wordmark">
+      <div class="wm-rule"></div>
+      <div class="wm-the">The</div>
+      <div class="wm-wednesday">Wednesday</div>
+      <div class="wm-times">Times</div>
+      <div class="wm-rule"></div>
+    </div>
     <div class="mast-right">
       <div class="tag">No ads · links to sources</div>
       <button id="theme-toggle" aria-label="Switch between light and dark mode">Dark</button>
@@ -414,7 +423,7 @@ rss = f"""<?xml version="1.0" encoding="UTF-8"?>
 <channel>
   <title>The Wednesday Times</title>
   <link>{SITE_URL}/</link>
-  <description>Every Sheffield Wednesday headline in one clean feed. Links go to the original publishers.</description>
+  <description>Sheffield Wednesday headlines in one clean feed. Links go to the original publishers.</description>
   <language>en-gb</language>
   <lastBuildDate>{BUILT_AT.strftime("%a, %d %b %Y %H:%M:%S +0000")}</lastBuildDate>{rss_items}
 </channel>
