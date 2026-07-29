@@ -1,8 +1,9 @@
-name: Update All Wednesday
+name: Update The Wednesday Times
 
 on:
   schedule:
-    - cron: "15,45 * * * *"   # refresh every 30 minutes
+    - cron: "6,36 * * * *"  # refresh every 30 minutes (offset from :00/:30
+                            # to dodge GitHub's busiest scheduling moments)
   workflow_dispatch:          # manual "run now" button
   push:
     branches: [main]
@@ -27,7 +28,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: pip install feedparser requests
+      - run: pip install feedparser
       - run: python fetch_news.py
       - run: python fetch_fixtures.py
         env:
