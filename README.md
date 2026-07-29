@@ -1,4 +1,4 @@
-# All Wednesday
+# The Wednesday Times
 
 Every Sheffield Wednesday headline in one clean, fast, **ad-free** feed.
 Headlines and short excerpts only — every link goes straight to the
@@ -44,14 +44,20 @@ site's terms first).
 
 - Headlines + short excerpts + links out. Never full article text,
   never stripping ads off publishers' pages.
-- One "support" link, no ad networks. 
+- One "support" link, no ad networks. If you add a sponsor later, one
+  clearly-labelled slot, hand-picked.
 - The footer disclaims any affiliation with the club.
 
 ## Launch checklist
 
 - [ ] Run it live for a few days; check dedupe quality and source mix
-- [ ] Buy a domain  (e.g. allwednesday.co.uk)
-- [ ] Watch what people ask for. 
+- [ ] Point the "support it here" footer link at Buy Me a Coffee / Ko-fi
+- [ ] Buy a domain if it feels right (e.g. allwednesday.co.uk)
+- [ ] Post to r/sheffieldwednesday + Owlstalk with honest framing:
+      "I got fed up with ad-choked aggregators so I built a clean one —
+      free, no ads, tell me what's missing"
+- [ ] Watch what people ask for. Push alerts and instant updates are the
+      obvious paid tier *if* daily usage shows up first.
 
 ## Expanding to other clubs
 

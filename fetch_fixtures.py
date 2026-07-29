@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-All Wednesday — fixtures & results.
+The Wednesday Times — fixtures & results.
 
 Primary source: the BBC's public fixtures page for the club, which works
 whatever division Wednesday are in (football-data.org's free tier doesn't

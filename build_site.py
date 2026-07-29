@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-All Wednesday — site builder.
+The Wednesday Times — site builder.
 
 Renders articles.json into index.html: a clean, fast, ad-free static page
 with light/dark mode and an official-sources filter. Run after
@@ -154,16 +154,16 @@ page = f"""<!doctype html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>All Wednesday — Sheffield Wednesday news, no clutter</title>
+<title>The Wednesday Times — Sheffield Wednesday news, no clutter</title>
 <meta name="description" content="Every Sheffield Wednesday headline in one clean, ad-free feed. Links go straight to the original source.">
-<meta property="og:title" content="All Wednesday — every Owls headline, no clutter">
+<meta property="og:title" content="The Wednesday Times — every Owls headline, no clutter">
 <meta property="og:description" content="Sheffield Wednesday news from every source in one clean, ad-free feed. Free, updated every 30 minutes.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="{SITE_URL}/">
 <meta property="og:image" content="{SITE_URL}/share.png">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="alternate" type="application/rss+xml" title="All Wednesday" href="{SITE_URL}/feed.xml">
-<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="alternate" type="application/rss+xml" title="The Wednesday Times" href="{SITE_URL}/feed.xml">
+<link rel="icon" href="favicon.png" type="image/png">
 {f'<script data-goatcounter="https://{GOATCOUNTER_CODE}.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>' if GOATCOUNTER_CODE else ''}
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=Source+Sans+3:wght@400;600&family=Space+Grotesk:wght@500&display=swap" rel="stylesheet">
@@ -199,20 +199,18 @@ page = f"""<!doctype html>
   * {{ box-sizing: border-box; margin: 0; }}
   body {{ background: var(--bg); color: var(--ink); font-family: "Source Sans 3", sans-serif; line-height: 1.5; }}
 
-  header {{ background: var(--head-bg); color: var(--head-fg); }}
-  .stripes {{ height: 6px; background: repeating-linear-gradient(90deg, var(--stripe-a) 0 28px, var(--stripe-b) 28px 56px); }}
-  .mast {{ max-width: 720px; margin: 0 auto; padding: 1.4rem 1.2rem 1.1rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }}
-  .mast h1 {{ font-family: "Archivo", sans-serif; font-variation-settings: "wdth" 115; font-weight: 900; font-size: clamp(1.5rem, 5vw, 2.2rem); letter-spacing: .01em; text-transform: uppercase; }}
-  .mast h1 span {{ color: var(--head-fg); }}
+  header {{ background: #FFFFFF; color: #16233B; border-bottom: 3px solid #16233B; }}
+  .mast {{ max-width: 720px; margin: 0 auto; padding: 1rem 1.2rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }}
+  .logo {{ height: 56px; width: auto; display: block; }}
   .mast-right {{ display: flex; align-items: center; gap: .9rem; }}
-  .tag {{ font-family: "Space Grotesk", monospace; font-size: .78rem; color: var(--head-fg); opacity: .85; }}
-  #theme-toggle {{ background: transparent; border: 1px solid var(--head-fg); color: var(--head-fg); border-radius: 999px; font-family: "Space Grotesk", monospace; font-size: .75rem; padding: .3rem .75rem; cursor: pointer; }}
-  #theme-toggle:focus-visible {{ outline: 2px solid var(--head-fg); outline-offset: 2px; }}
+  .tag {{ font-family: "Space Grotesk", monospace; font-size: .78rem; color: #5B6B80; }}
+  #theme-toggle {{ background: transparent; border: 1px solid #16233B; color: #16233B; border-radius: 999px; font-family: "Space Grotesk", monospace; font-size: .75rem; padding: .3rem .75rem; cursor: pointer; }}
+  #theme-toggle:focus-visible {{ outline: 2px solid #16233B; outline-offset: 2px; }}
 
-  .followbar {{ background: var(--head-bg); border-top: 1px solid var(--line); }}
+  .followbar {{ background: #F4F7FB; border-top: 1px solid #D8E1EC; border-bottom: 1px solid #D8E1EC; }}
   .followbar .inner {{ max-width: 720px; margin: 0 auto; padding: .5rem 1.2rem .8rem; display: flex; gap: 1rem; flex-wrap: wrap; font-family: "Space Grotesk", monospace; font-size: .74rem; }}
-  .followbar span {{ color: var(--head-fg); opacity: .85; }}
-  .followbar a {{ color: var(--head-fg); text-decoration: none; }}
+  .followbar span {{ color: #5B6B80; }}
+  .followbar a {{ color: #0353A4; text-decoration: none; }}
   .followbar a:hover {{ text-decoration: underline; }}
 
   .fixbar {{ background: var(--card); border-bottom: 1px solid var(--line); }}
@@ -267,15 +265,13 @@ page = f"""<!doctype html>
 </head>
 <body>
 <header>
-  <div class="stripes"></div>
   <div class="mast">
-    <h1>All <span>Wednesday</span></h1>
+    <img class="logo" src="logo.png" alt="The Wednesday Times">
     <div class="mast-right">
       <div class="tag">No ads · links to sources</div>
       <button id="theme-toggle" aria-label="Switch between light and dark mode">Dark</button>
     </div>
   </div>
-  <div class="stripes"></div>
   <div class="followbar"><div class="inner">
     <span>Official:</span>{follow}
   </div></div>
@@ -416,7 +412,7 @@ rss_items = "".join(
 rss = f"""<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0">
 <channel>
-  <title>All Wednesday</title>
+  <title>The Wednesday Times</title>
   <link>{SITE_URL}/</link>
   <description>Every Sheffield Wednesday headline in one clean feed. Links go to the original publishers.</description>
   <language>en-gb</language>

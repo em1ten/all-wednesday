@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-All Wednesday — feed fetcher.
+The Wednesday Times — feed fetcher.
 
 Pulls Sheffield Wednesday headlines from public RSS feeds, dedupes them,
 and writes articles.json for the site builder.
