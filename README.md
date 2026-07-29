@@ -48,22 +48,9 @@ site's terms first).
   clearly-labelled slot, hand-picked.
 - The footer disclaims any affiliation with the club.
 
-## Launch checklist
 
-- [ ] Run it live for a few days; check dedupe quality and source mix
-- [ ] Point the "support it here" footer link at Buy Me a Coffee / Ko-fi
-- [ ] Buy a domain if it feels right (e.g. allwednesday.co.uk)
-- [ ] Post to r/sheffieldwednesday + Owlstalk with honest framing:
-      "I got fed up with ad-choked aggregators so I built a clean one —
-      free, no ads, tell me what's missing"
-- [ ] Watch what people ask for. Push alerts and instant updates are the
-      obvious paid tier *if* daily usage shows up first.
 
-## Expanding to other clubs
 
-Everything club-specific lives in `FEEDS` and the page copy. Clone the
-folder, swap the feeds and colours, and you have the next club in an
-afternoon — but only do that once Wednesday proves people want it.
 
 ## New in this version
 
