@@ -37,9 +37,7 @@ except FileNotFoundError:
 # ---- story tagging (keyword-based, tune freely) ----
 TAG_RULES = [
     ("Transfers", ["transfer", "sign", "signing", "loan", "linked", "bid", "deal", "contract", "fee", "swoop", "target"]),
-    ("Injuries", ["injur", "knock", "fitness", "ruled out", "sidelined", "scan", "hamstring", "surgery", "return date"]),
     ("Match", ["highlights", "report", "full-time", "friendly", "kick-off", "line-up", "lineup", "reaction", "player ratings", "preview", "team news"]),
-    ("Youth", ["academy", "under-21", "under-18", "u21", "u18", "youth", "development squad"]),
     ("Club news", ["statement", "ticket", "announce", "confirm", "hillsborough", "ownership", "takeover", "efl"]),
 ]
 
@@ -200,19 +198,18 @@ page = f"""<!doctype html>
   body {{ background: var(--bg); color: var(--ink); font-family: "Source Sans 3", sans-serif; line-height: 1.5; }}
 
   header {{ background: var(--card); color: var(--ink); border-bottom: 3px solid var(--ink); }}
-  .mast {{ max-width: 720px; margin: 0 auto; padding: 1rem 1.2rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }}
-  .wordmark {{ text-align: center; line-height: 1; }}
-  .wm-rule {{ border-top: 1.5px solid var(--ink); margin: .25rem auto; max-width: 340px; }}
-  .wm-the, .wm-times {{ font-family: Georgia, "Times New Roman", serif; font-style: italic; font-size: .8rem; color: var(--ink); margin: .1rem 0; }}
-  .wm-wednesday {{ font-family: "Archivo", sans-serif; font-variation-settings: "wdth" 115; font-weight: 900; font-size: clamp(1.7rem, 6vw, 2.5rem); letter-spacing: .01em; text-transform: uppercase; color: var(--ink); margin: .05rem 0; }}
-  .mast-right {{ display: flex; align-items: center; gap: .9rem; }}
-  .tag {{ font-family: "Space Grotesk", monospace; font-size: .78rem; color: var(--muted); }}
+  .mast {{ max-width: 720px; margin: 0 auto; padding: .7rem 1.2rem; text-align: center; position: relative; }}
+  .wordmark {{ line-height: 1.2; }}
+  .wm-initials {{ font-family: Georgia, "Times New Roman", serif; font-weight: 700; font-size: clamp(1.9rem, 8vw, 2.6rem); letter-spacing: .03em; color: var(--ink); line-height: 1; }}
+  .wm-subtitle {{ font-family: "Space Grotesk", monospace; font-size: .68rem; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); margin-top: .2rem; }}
+  .mast-right {{ position: absolute; top: .7rem; right: 1.2rem; }}
   #theme-toggle {{ background: transparent; border: 1px solid var(--ink); color: var(--ink); border-radius: 999px; font-family: "Space Grotesk", monospace; font-size: .75rem; padding: .3rem .75rem; cursor: pointer; }}
   #theme-toggle:focus-visible {{ outline: 2px solid var(--ink); outline-offset: 2px; }}
 
   .followbar {{ background: var(--bg); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }}
-  .followbar .inner {{ max-width: 720px; margin: 0 auto; padding: .5rem 1.2rem .8rem; display: flex; gap: 1rem; flex-wrap: wrap; font-family: "Space Grotesk", monospace; font-size: .74rem; }}
-  .followbar span {{ color: var(--muted); }}
+  .followbar summary {{ max-width: 720px; margin: 0 auto; padding: .45rem 1.2rem; font-family: "Space Grotesk", monospace; font-size: .74rem; color: var(--muted); cursor: pointer; user-select: none; }}
+  .followbar summary:hover {{ color: var(--blue); }}
+  .followbar .inner {{ max-width: 720px; margin: 0 auto; padding: 0 1.2rem .7rem; display: flex; gap: 1rem; flex-wrap: wrap; font-family: "Space Grotesk", monospace; font-size: .74rem; }}
   .followbar a {{ color: var(--blue); text-decoration: none; }}
   .followbar a:hover {{ text-decoration: underline; }}
 
@@ -270,20 +267,17 @@ page = f"""<!doctype html>
 <header>
   <div class="mast">
     <div class="wordmark">
-      <div class="wm-rule"></div>
-      <div class="wm-the">The</div>
-      <div class="wm-wednesday">Wednesday</div>
-      <div class="wm-times">Times</div>
-      <div class="wm-rule"></div>
+      <div class="wm-initials">TWT</div>
+      <div class="wm-subtitle">The Wednesday Times</div>
     </div>
     <div class="mast-right">
-      <div class="tag">No ads · links to sources</div>
       <button id="theme-toggle" aria-label="Switch between light and dark mode">Dark</button>
     </div>
   </div>
-  <div class="followbar"><div class="inner">
-    <span>Official:</span>{follow}
-  </div></div>
+  <details class="followbar">
+    <summary>Official links</summary>
+    <div class="inner">{follow}</div>
+  </details>
 </header>
 
 {fixtures_html}
@@ -297,7 +291,7 @@ page = f"""<!doctype html>
   </div>
   <details class="srcpanel">
     <summary>Sources <span id="src-note"></span></summary>
-    <p class="srchint">Tap a source to hide it from your feed (tap again to bring it back). Remembered on this device.</p>
+    <p class="srchint">Tap to hide a source</p>
     <div class="srcchips">{chips}</div>
   </details>
   {items_html}
