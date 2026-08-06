@@ -417,7 +417,9 @@ page = f"""<!doctype html>
     }} catch (e) {{ /* offline or blocked - fail silently, try again next interval */ }}
   }}
 
-  refreshBtn.addEventListener('click', () => location.reload());
+  refreshBtn.addEventListener('click', () => {{
+    location.href = location.pathname + '?refresh=' + Date.now();
+  }});
   setInterval(checkForUpdate, 3 * 60000); // check every 3 minutes
   document.addEventListener('visibilitychange', () => {{
     if (!document.hidden) checkForUpdate(); // also check whenever the tab regains focus
