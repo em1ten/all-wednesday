@@ -108,16 +108,18 @@ def fmt_kickoff(iso: str) -> str:
 fix_bits = []
 nxt = FIXTURES.get("next")
 if nxt:
+    comp = f' <span class="fix-comp">({html.escape(nxt["competition"])})</span>' if nxt.get("competition") else ""
     fix_bits.append(
         f'<div class="fix"><span class="fix-label">Next</span>'
-        f'{html.escape(nxt["home"])} v {html.escape(nxt["away"])}'
+        f'{html.escape(nxt["home"])} v {html.escape(nxt["away"])}{comp}'
         f'<span class="fix-sub">{fmt_kickoff(nxt["date"])}</span></div>'
     )
 last = FIXTURES.get("last")
 if last and last.get("score"):
+    comp = f' <span class="fix-comp">({html.escape(last["competition"])})</span>' if last.get("competition") else ""
     fix_bits.append(
         f'<div class="fix"><span class="fix-label">Last</span>'
-        f'{html.escape(last["home"])} {html.escape(last["score"])} {html.escape(last["away"])}</div>'
+        f'{html.escape(last["home"])} {html.escape(last["score"])} {html.escape(last["away"])}{comp}</div>'
     )
 st = FIXTURES.get("standing")
 if st:
@@ -217,6 +219,7 @@ page = f"""<!doctype html>
   .fixbar .inner {{ max-width: 720px; margin: 0 auto; padding: .55rem 1.2rem; display: flex; gap: 1.4rem; flex-wrap: wrap; font-family: "Space Grotesk", monospace; font-size: .78rem; color: var(--ink); }}
   .fix-label {{ color: var(--blue); text-transform: uppercase; font-size: .65rem; letter-spacing: .1em; margin-right: .45rem; }}
   .fix-sub {{ color: var(--muted); margin-left: .45rem; }}
+  .fix-comp {{ color: var(--muted); font-size: .85em; }}
   .fix-note {{ color: var(--muted); font-style: italic; }}
 
   #search {{ width: 100%; font-family: "Source Sans 3", sans-serif; font-size: .95rem; color: var(--ink); background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: .55rem .9rem; margin-bottom: .7rem; }}
@@ -256,6 +259,8 @@ page = f"""<!doctype html>
   footer {{ max-width: 720px; margin: 2rem auto 3rem; padding: 0 1.2rem; font-size: .8rem; color: var(--muted); }}
   footer a {{ color: var(--blue); }}
   .hidden {{ display: none; }}
+  .update-banner {{ width: fit-content; margin: .8rem auto 0; background: var(--ink); color: var(--bg); border-radius: 999px; padding: .55rem .6rem .55rem 1rem; display: flex; align-items: center; gap: .7rem; font-family: "Space Grotesk", monospace; font-size: .8rem; box-shadow: 0 4px 16px rgba(0,0,0,.2); }}
+  .update-banner button {{ background: var(--blue); color: var(--badge-fg); border: none; border-radius: 999px; padding: .35rem .8rem; font-family: inherit; font-size: .78rem; cursor: pointer; }}
   @media (prefers-reduced-motion: no-preference) {{
     .item {{ transition: border-color .15s; }}
     .item:hover {{ border-color: var(--blue); }}
@@ -281,6 +286,11 @@ page = f"""<!doctype html>
 </header>
 
 {fixtures_html}
+
+<div id="update-banner" class="update-banner hidden">
+  <span>New stories available</span>
+  <button id="update-refresh">Refresh</button>
+</div>
 
 <main class="wrap">
   <input id="search" type="search" placeholder="Search headlines…" aria-label="Search headlines">
@@ -391,6 +401,27 @@ page = f"""<!doctype html>
   }}
   refreshTimes();
   setInterval(refreshTimes, 60000);
+
+  // ---- check for new content, show a gentle banner rather than a jarring auto-reload ----
+  const PAGE_BUILT_AT = "{BUILT_AT.isoformat()}";
+  const banner = document.getElementById('update-banner');
+  const refreshBtn = document.getElementById('update-refresh');
+
+  async function checkForUpdate() {{
+    try {{
+      const res = await fetch('version.json?t=' + Date.now(), {{ cache: 'no-store' }});
+      const data = await res.json();
+      if (data.built && data.built !== PAGE_BUILT_AT) {{
+        banner.classList.remove('hidden');
+      }}
+    }} catch (e) {{ /* offline or blocked - fail silently, try again next interval */ }}
+  }}
+
+  refreshBtn.addEventListener('click', () => location.reload());
+  setInterval(checkForUpdate, 3 * 60000); // check every 3 minutes
+  document.addEventListener('visibilitychange', () => {{
+    if (!document.hidden) checkForUpdate(); // also check whenever the tab regains focus
+  }});
 </script>
 </body>
 </html>"""
@@ -434,6 +465,9 @@ sitemap = f"""<?xml version="1.0" encoding="UTF-8"?>
   </url>
 </urlset>"""
 (HERE / "sitemap.xml").write_text(sitemap)
+
+# ---- tiny version marker, polled client-side to detect new content ----
+(HERE / "version.json").write_text(json.dumps({"built": BUILT_AT.isoformat()}))
 
 n_official = sum(1 for a in ARTICLES if a.get("official"))
 print(f"Built index.html + feed.xml + sitemap.xml: {len(ARTICLES)} articles ({n_official} official), tags: {', '.join(used_tags) or 'none'}")
