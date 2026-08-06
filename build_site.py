@@ -404,7 +404,10 @@ page = f"""<!doctype html>
   setInterval(refreshTimes, 60000);
 
   // ---- check for new content, show a gentle banner rather than a jarring auto-reload ----
-  const PAGE_BUILT_AT = "{BUILT_AT.isoformat()}";
+  // Compares the newest article's URL, not the raw build time - the site
+  // rebuilds every ~15 min regardless of whether anything new was found,
+  // so comparing build times alone would nag even with zero new stories.
+  const PAGE_LATEST = {json.dumps(ARTICLES[0]["url"] if ARTICLES else None)};
   const banner = document.getElementById('update-banner');
   const refreshBtn = document.getElementById('update-refresh');
 
@@ -412,7 +415,7 @@ page = f"""<!doctype html>
     try {{
       const res = await fetch('version.json?t=' + Date.now(), {{ cache: 'no-store' }});
       const data = await res.json();
-      if (data.built && data.built !== PAGE_BUILT_AT) {{
+      if (data.latest && data.latest !== PAGE_LATEST) {{
         banner.classList.remove('hidden');
       }}
     }} catch (e) {{ /* offline or blocked - fail silently, try again next interval */ }}
@@ -470,7 +473,10 @@ sitemap = f"""<?xml version="1.0" encoding="UTF-8"?>
 (HERE / "sitemap.xml").write_text(sitemap)
 
 # ---- tiny version marker, polled client-side to detect new content ----
-(HERE / "version.json").write_text(json.dumps({"built": BUILT_AT.isoformat()}))
+(HERE / "version.json").write_text(json.dumps({
+    "built": BUILT_AT.isoformat(),
+    "latest": ARTICLES[0]["url"] if ARTICLES else None,
+}))
 
 n_official = sum(1 for a in ARTICLES if a.get("official"))
 print(f"Built index.html + feed.xml + sitemap.xml: {len(ARTICLES)} articles ({n_official} official), tags: {', '.join(used_tags) or 'none'}")
