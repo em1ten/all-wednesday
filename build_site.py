@@ -260,7 +260,8 @@ page = f"""<!doctype html>
   footer {{ max-width: 720px; margin: 2rem auto 3rem; padding: 0 1.2rem; font-size: .8rem; color: var(--muted); }}
   footer a {{ color: var(--blue); }}
   .hidden {{ display: none; }}
-  .update-banner {{ width: fit-content; margin: .8rem auto 0; background: var(--ink); color: var(--bg); border-radius: 999px; padding: .55rem .6rem .55rem 1rem; display: flex; align-items: center; gap: .7rem; font-family: "Space Grotesk", monospace; font-size: .8rem; box-shadow: 0 4px 16px rgba(0,0,0,.2); }}
+  .update-banner {{ width: fit-content; margin: .8rem auto 0; background: var(--ink); color: var(--bg); border-radius: 999px; padding: .55rem .6rem .55rem 1rem; display: flex; align-items: center; gap: .7rem; font-family: "Space Grotesk", monospace; font-size: .8rem; box-shadow: 0 4px 16px rgba(0,0,0,.2); opacity: 0; visibility: hidden; transition: opacity .35s ease, visibility .35s; }}
+  .update-banner.show {{ opacity: 1; visibility: visible; }}
   .update-banner button {{ background: var(--blue); color: var(--badge-fg); border: none; border-radius: 999px; padding: .35rem .8rem; font-family: inherit; font-size: .78rem; cursor: pointer; }}
   @media (prefers-reduced-motion: no-preference) {{
     .item {{ transition: border-color .15s; }}
@@ -288,7 +289,7 @@ page = f"""<!doctype html>
 
 {fixtures_html}
 
-<div id="update-banner" class="update-banner hidden">
+<div id="update-banner" class="update-banner">
   <span>New stories available</span>
   <button id="update-refresh">Refresh</button>
 </div>
@@ -416,7 +417,7 @@ page = f"""<!doctype html>
       const res = await fetch('version.json?t=' + Date.now(), {{ cache: 'no-store' }});
       const data = await res.json();
       if (data.latest && data.latest !== PAGE_LATEST) {{
-        banner.classList.remove('hidden');
+        banner.classList.add('show');
       }}
     }} catch (e) {{ /* offline or blocked - fail silently, try again next interval */ }}
   }}
