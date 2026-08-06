@@ -103,7 +103,8 @@ follow = "".join(
 # ---- fixtures strip ----
 def fmt_kickoff(iso: str) -> str:
     dt = datetime.fromisoformat(iso.replace("Z", "+00:00"))
-    return dt.strftime("%a %d %b, %H:%M")
+    dt_uk = dt.astimezone(ZoneInfo("Europe/London"))
+    return dt_uk.strftime("%a %d %b, %H:%M")
 
 fix_bits = []
 nxt = FIXTURES.get("next")
