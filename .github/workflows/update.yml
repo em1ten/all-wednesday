@@ -14,8 +14,9 @@ permissions:
   id-token: write
 
 concurrency:
-  group: pages
-  cancel-in-progress: false
+  group: pages-clean   # renamed from "pages" to escape an old stuck run
+                       # (#1363) that was permanently blocking the queue
+  cancel-in-progress: true
 
 jobs:
   build-and-deploy:
