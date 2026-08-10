@@ -143,11 +143,17 @@ for a in ARTICLES:
         current_bucket = b
     badge = '<span class="badge">Official</span>' if a.get("official") else ""
     tagpill = f'<span class="tagpill">{html.escape(a["tag"])}</span>' if a.get("tag") else ""
+    thumb = f'<img class="thumb" src="{html.escape(a["image"])}" alt="" loading="lazy">' if a.get("image") else ""
     items_html += f"""
     <article class="item{' official' if a.get('official') else ''}" data-source="{html.escape(a['source'])}" data-official="{'1' if a.get('official') else '0'}" data-tag="{html.escape(a.get('tag') or '')}">
-      <div class="meta"><span class="time" data-published="{html.escape(a['published'])}">{rel_time(a['published'])}</span><span class="src">{html.escape(a['source'])}</span>{badge}{tagpill}</div>
-      <a class="headline" href="{html.escape(a['url'])}" target="_blank" rel="noopener">{html.escape(a['title'])}</a>
-      {f'<p class="excerpt">{html.escape(a["excerpt"])}</p>' if a.get('excerpt') else ''}
+      <div class="item-row">
+        {thumb}
+        <div class="item-text">
+          <div class="meta"><span class="time" data-published="{html.escape(a['published'])}">{rel_time(a['published'])}</span><span class="src">{html.escape(a['source'])}</span>{badge}{tagpill}</div>
+          <a class="headline" href="{html.escape(a['url'])}" target="_blank" rel="noopener">{html.escape(a['title'])}</a>
+          {f'<p class="excerpt">{html.escape(a["excerpt"])}</p>' if a.get('excerpt') else ''}
+        </div>
+      </div>
     </article>"""
 
 page = f"""<!doctype html>
@@ -155,9 +161,9 @@ page = f"""<!doctype html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>The Wednesday Times — Sheffield Wednesday news, no clutter</title>
+<title>The Wednesday Times - Sheffield Wednesday news, no clutter</title>
 <meta name="description" content="Sheffield Wednesday headlines in one clean, ad-free feed. Links go straight to the original source.">
-<meta property="og:title" content="The Wednesday Times — Owls headlines, no clutter">
+<meta property="og:title" content="The Wednesday Times - Owls headlines, no clutter">
 <meta property="og:description" content="Sheffield Wednesday news from multiple sources in one clean, ad-free feed. Free, updated every 30 minutes.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="{SITE_URL}/">
@@ -249,6 +255,9 @@ page = f"""<!doctype html>
   .day {{ font-family: "Archivo", sans-serif; font-weight: 800; font-size: .85rem; text-transform: uppercase; letter-spacing: .12em; color: var(--blue); margin: 1.6rem 0 .4rem; }}
 
   .item {{ background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: .95rem 1.1rem; margin-top: .6rem; }}
+  .item-row {{ display: flex; gap: .8rem; align-items: flex-start; }}
+  .item-text {{ flex: 1; min-width: 0; }}
+  .thumb {{ width: 64px; height: 64px; object-fit: cover; border-radius: 8px; flex-shrink: 0; background: var(--line); }}
   .item.official {{ border-left: 3px solid var(--blue); }}
   .meta {{ display: flex; align-items: center; gap: .7rem; font-family: "Space Grotesk", monospace; font-size: .74rem; color: var(--muted); margin-bottom: .3rem; }}
   .src {{ color: var(--blue); }}
