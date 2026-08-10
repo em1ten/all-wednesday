@@ -97,6 +97,31 @@ def real_source(entry, fallback: str) -> str:
     return fallback
 
 
+def extract_image(entry) -> str | None:
+    """Best-effort thumbnail URL from whichever RSS/Atom convention the
+    feed happens to use. Purely cosmetic — if nothing matches, the card
+    just renders without an image, same as it does today."""
+    # Media RSS extension (common on BBC and many publisher feeds)
+    thumb = getattr(entry, "media_thumbnail", None)
+    if thumb and isinstance(thumb, list) and thumb[0].get("url"):
+        return thumb[0]["url"]
+    content = getattr(entry, "media_content", None)
+    if content and isinstance(content, list):
+        for c in content:
+            if c.get("url") and ("image" in c.get("medium", "") or c.get("type", "").startswith("image")):
+                return c["url"]
+    # Podcast/enclosure-style image link
+    for link in getattr(entry, "links", []):
+        if link.get("rel") == "enclosure" and link.get("type", "").startswith("image"):
+            return link.get("href")
+    # Last resort: an <img> tag embedded directly in the summary HTML
+    summary = getattr(entry, "summary", "") or ""
+    m = re.search(r'<img[^>]+src="([^"]+)"', summary)
+    if m:
+        return m.group(1)
+    return None
+
+
 FETCH_HEADERS = {
     # A plain/default user-agent gets rate-limited or blocked by Google News
     # more often than a normal browser identity does. This isn't foolproof,
@@ -181,6 +206,7 @@ def fetch_all() -> list[dict]:
                     "published": datetime.fromtimestamp(ts, tz=timezone.utc).isoformat(),
                     "excerpt": excerpt,
                     "official": feed["official"] or source in OFFICIAL_SOURCE_NAMES,
+                    "image": extract_image(e),
                 }
             )
     return articles
