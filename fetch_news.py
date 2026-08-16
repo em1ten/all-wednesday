@@ -101,10 +101,15 @@ def extract_image(entry) -> str | None:
     """Best-effort thumbnail URL from whichever RSS/Atom convention the
     feed happens to use. Purely cosmetic — if nothing matches, the card
     just renders without an image, same as it does today."""
-    # Media RSS extension (common on BBC and many publisher feeds)
+    # Media RSS extension (common on BBC and many publisher feeds) -
+    # feedparser can expose this as either a list or a single dict
+    # depending on the feed, so handle both shapes defensively.
     thumb = getattr(entry, "media_thumbnail", None)
-    if thumb and isinstance(thumb, list) and thumb[0].get("url"):
-        return thumb[0]["url"]
+    if thumb:
+        if isinstance(thumb, list) and thumb and thumb[0].get("url"):
+            return thumb[0]["url"]
+        if isinstance(thumb, dict) and thumb.get("url"):
+            return thumb["url"]
     content = getattr(entry, "media_content", None)
     if content and isinstance(content, list):
         for c in content:
@@ -114,11 +119,16 @@ def extract_image(entry) -> str | None:
     for link in getattr(entry, "links", []):
         if link.get("rel") == "enclosure" and link.get("type", "").startswith("image"):
             return link.get("href")
-    # Last resort: an <img> tag embedded directly in the summary HTML
-    summary = getattr(entry, "summary", "") or ""
-    m = re.search(r'<img[^>]+src="([^"]+)"', summary)
-    if m:
-        return m.group(1)
+    # Last resort: an <img> tag embedded directly in the HTML body -
+    # check both summary and the fuller content field, and accept
+    # either quote style around the src attribute.
+    html_sources = [getattr(entry, "summary", "") or ""]
+    for c in getattr(entry, "content", []) or []:
+        html_sources.append(c.get("value", ""))
+    for html_src in html_sources:
+        m = re.search(r'<img[^>]+src=["\']([^"\']+)["\']', html_src)
+        if m:
+            return m.group(1)
     return None
 
 
@@ -231,10 +241,38 @@ def dedupe(articles: list[dict]) -> list[dict]:
     return kept
 
 
+def load_previous() -> list[dict]:
+    """Last run's articles, filtered to the same age window as fresh
+    fetches - used as a fallback if this run's fetch is partial (e.g. a
+    feed gets temporarily rate-limited/blocked). Missing/corrupt file or
+    a bad timestamp just drops that entry, never fatal."""
+    try:
+        old = json.loads(OUT.read_text())
+    except Exception:
+        return []
+    now = time.time()
+    kept = []
+    for a in old:
+        try:
+            ts = datetime.fromisoformat(a["published"]).timestamp()
+        except Exception:
+            continue
+        if (now - ts) <= MAX_AGE_DAYS * 86400:
+            kept.append(a)
+    return kept
+
+
 def main() -> None:
-    articles = dedupe(fetch_all())
+    fresh = fetch_all()
+    previous = load_previous()
+    # Merge rather than replace: if a feed returned nothing this run
+    # (temporary block/rate-limit), its recent stories from last run's
+    # data are still here to fall back on rather than the site briefly
+    # losing content. dedupe() collapses duplicates and MAX_AGE_DAYS
+    # (applied during fetch) keeps genuinely old stories from lingering.
+    articles = dedupe(fresh + previous)
     OUT.write_text(json.dumps(articles, indent=2))
-    print(f"Fetched {len(articles)} articles -> {OUT.name}")
+    print(f"Fetched {len(fresh)} fresh, {len(previous)} carried over, {len(articles)} total -> {OUT.name}")
 
 
 if __name__ == "__main__":
