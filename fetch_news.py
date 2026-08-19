@@ -200,14 +200,17 @@ def fetch_all() -> list[dict]:
             if "news.google.com" in feed["url"]:
                 title = re.sub(r"\s+-\s+[^-]+$", "", title)
             excerpt = clean_html(e.get("summary", ""))[:EXCERPT_CHARS]
-            # Google News "summaries" are just the headline repeated with
-            # a publisher name appended (and on clustered stories, several
-            # unrelated headlines mashed together). Pure duplication of
-            # what's already shown - drop them. Real summaries (BBC's
-            # descriptions, YouTube blurbs) don't start with the title,
-            # so they survive this check.
+            # Most Google News "summaries" are just the headline repeated
+            # plus a bare domain name (e.g. "Headline thestar.co.uk") -
+            # pure duplication, worth suppressing. But some carry genuine
+            # extra text beyond that (related headlines, more context) -
+            # imperfect, but still worth keeping since Star headlines in
+            # particular are often deliberately vague and readers want
+            # whatever context is available.
             if excerpt and title and excerpt.lower().startswith(title.lower()[:50]):
-                excerpt = ""
+                remainder = excerpt[len(title):].strip()
+                if len(remainder) < 25:  # just a bare domain, nothing more
+                    excerpt = ""
             if not title or not e.get("link"):
                 continue
             if is_wrong_club(title, excerpt):
