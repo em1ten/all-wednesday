@@ -22,7 +22,7 @@ BUILT_AT_UK = BUILT_AT.astimezone(ZoneInfo("Europe/London"))
 
 # Set this to your real URL once deployed (needed for social link previews
 # and the RSS feed) e.g. "https://yourusername.github.io/all-wednesday"
-SITE_URL = "https://allwednesday.uk"
+SITE_URL = "https://thewednesdaytimes.uk"
 
 # Free, cookie-free analytics: https://www.goatcounter.com/ (no signup cost).
 # Sign up, then put your code here (the bit before ".goatcounter.com").
