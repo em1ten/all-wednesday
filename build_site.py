@@ -17,6 +17,7 @@ from zoneinfo import ZoneInfo
 
 HERE = Path(__file__).parent
 ARTICLES = json.loads((HERE / "articles.json").read_text())
+ARTICLES.sort(key=lambda a: a["published"], reverse=True)  # newest first, guaranteed regardless of input order
 BUILT_AT = datetime.now(timezone.utc)
 BUILT_AT_UK = BUILT_AT.astimezone(ZoneInfo("Europe/London"))
 
@@ -85,38 +86,19 @@ chips = "".join(
     for s in sources
 )
 
-# ---- source quality tiers (lower = higher priority) ----
-# This is a judgment call, not a formula - adjust freely as sources
-# prove themselves better or worse over time.
-SOURCE_TIERS = {
-    # Tier 1: official - not "trustworthy", it's the actual source
-    "SWFC Official": 1, "SWFC YouTube": 1, "EFL Official": 1,
-    # Tier 2: national broadcast/press with real editorial standards
-    "BBC": 2, "Sky Sports": 2,
-    # Tier 3: dedicated regional/football press
-    "The Star": 3, "Yorkshire Post": 3, "Sheffield Tribune": 3,
-    # Tier 4: other national football press (also the default for
-    # anything not explicitly listed, so new/unknown sources land
-    # in the middle rather than accidentally ranking best or worst)
-    "Goal.com": 4, "talkSPORT": 4, "The Sun": 4, "Inside Futbol": 4,
-    "The72": 4, "hayters.com": 4,
-    # Tier 5: betting-tip content (not journalism) and opponent clubs'
-    # own sites (legitimate, but about the other team)
-    "Racing Post": 5, "William Hill News": 5, "Footy Accumulators": 5,
-    "Bradford City AFC": 5, "Leyton Orient FC": 5,
+# ---- source groupings, used for filter pills only (not sort order) ----
+# Judgment call, not a formula - adjust freely.
+SOURCE_GROUPS = {
+    "BBC": "National", "Sky Sports": "National", "Goal.com": "National",
+    "talkSPORT": "National", "The Sun": "National", "Inside Futbol": "National",
+    "The72": "National", "hayters.com": "National",
+    "The Star": "Regional", "Yorkshire Post": "Regional", "Sheffield Tribune": "Regional",
 }
-DEFAULT_TIER = 4
 
 
-def source_tier(source: str) -> int:
-    return SOURCE_TIERS.get(source, DEFAULT_TIER)
+def source_group(source: str) -> str:
+    return SOURCE_GROUPS.get(source, "")
 
-
-ARTICLES.sort(key=lambda a: (
-    -datetime.fromisoformat(a["published"]).date().toordinal(),  # day bucket, newest first (matches day_bucket() exactly)
-    source_tier(a["source"]),                                     # then quality tier
-    -datetime.fromisoformat(a["published"]).timestamp(),          # then recency within tier
-))
 
 for a in ARTICLES:
     a["tag"] = tag_for(a)
@@ -124,6 +106,11 @@ used_tags = sorted({a["tag"] for a in ARTICLES if a["tag"]})
 tag_chips = "".join(
     f'<button class="chip" data-filter="tag:{html.escape(t)}">{html.escape(t)}</button>'
     for t in used_tags
+)
+used_groups = sorted({source_group(a["source"]) for a in ARTICLES if source_group(a["source"])})
+group_chips = "".join(
+    f'<button class="chip" data-filter="group:{html.escape(g)}">{html.escape(g)}</button>'
+    for g in used_groups
 )
 
 follow = "".join(
@@ -176,7 +163,7 @@ for a in ARTICLES:
     tagpill = f'<span class="tagpill">{html.escape(a["tag"])}</span>' if a.get("tag") else ""
     thumb = f'<img class="thumb" src="{html.escape(a["image"])}" alt="" loading="lazy">' if a.get("image") else ""
     items_html += f"""
-    <article class="item{' official' if a.get('official') else ''}" data-source="{html.escape(a['source'])}" data-official="{'1' if a.get('official') else '0'}" data-tag="{html.escape(a.get('tag') or '')}">
+    <article class="item{' official' if a.get('official') else ''}" data-source="{html.escape(a['source'])}" data-official="{'1' if a.get('official') else '0'}" data-tag="{html.escape(a.get('tag') or '')}" data-group="{html.escape(source_group(a['source']))}">
       <div class="item-row">
         {thumb}
         <div class="item-text">
@@ -337,6 +324,7 @@ page = f"""<!doctype html>
   <div class="filters" role="group" aria-label="Filter the feed">
     <button class="chip" data-filter="all" aria-pressed="true">All</button>
     <button class="chip" data-filter="official">Official only</button>
+    {group_chips}
     {tag_chips}
   </div>
   <details class="srcpanel">
@@ -394,6 +382,7 @@ page = f"""<!doctype html>
       let show = selected.size === 0 || selected.has(item.dataset.source);
       if (show && activeFilter === 'official') show = item.dataset.official === '1';
       else if (show && activeFilter.startsWith('tag:')) show = item.dataset.tag === activeFilter.slice(4);
+      else if (show && activeFilter.startsWith('group:')) show = item.dataset.group === activeFilter.slice(6);
       if (show && q) show = item.textContent.toLowerCase().includes(q);
       item.classList.toggle('hidden', !show);
     }});
