@@ -102,6 +102,55 @@ def event_datetime(ev: dict) -> str | None:
     return None
 
 
+def competition_name(ev: dict) -> str | None:
+    """Best-effort competition/league label (e.g. 'Friendly', 'Carabao
+    Cup', 'League One'). Purely cosmetic — if none of these field names
+    match, the fixture still displays fine without a label."""
+    for path in (
+        ("competition", "name"),
+        ("tournament", "name"),
+        ("competitionName",),
+        ("league", "name"),
+        ("stage", "competition", "name"),
+    ):
+        cur = ev
+        ok = True
+        for k in path:
+            if isinstance(cur, dict) and k in cur:
+                cur = cur[k]
+            else:
+                ok = False
+                break
+        if ok and isinstance(cur, str) and cur:
+            return cur
+    return None
+
+
+def venue_name(ev: dict) -> str | None:
+    """Best-effort ground/stadium name. Same speculative approach as
+    competition_name - BBC may or may not expose this depending on the
+    exact page structure, so this is a bonus if it works, harmless if
+    not."""
+    for path in (
+        ("venue", "name"),
+        ("ground", "name"),
+        ("venueName",),
+        ("stadium", "name"),
+        ("event", "venue", "name"),
+    ):
+        cur = ev
+        ok = True
+        for k in path:
+            if isinstance(cur, dict) and k in cur:
+                cur = cur[k]
+            else:
+                ok = False
+                break
+        if ok and isinstance(cur, str) and cur:
+            return cur
+    return None
+
+
 def main() -> None:
     try:
         page = requests.get(BBC_URL, headers=UA, timeout=30).text
@@ -127,6 +176,9 @@ def main() -> None:
         parsed.append({
             "home": hn, "away": an, "date": dt,
             "score": f"{hs}\u2013{as_}" if hs is not None and as_ is not None else None,
+            "competition": competition_name(ev),
+            "venue": venue_name(ev),
+            "is_home": TEAM_MATCH in hn.lower(),
         })
 
     if not parsed:
