@@ -83,7 +83,8 @@ def day_bucket(iso: str) -> str:
 
 sources = sorted({a["source"] for a in ARTICLES})
 chips = "".join(
-    f'<button class="srcchip" data-src="{html.escape(s)}" aria-pressed="true">{html.escape(s)}</button>'
+    f'<span class="srcrow"><button class="srcchip" data-src="{html.escape(s)}" aria-pressed="true">{html.escape(s)}</button>'
+    f'<button class="srconly" data-src="{html.escape(s)}">only</button></span>'
     for s in sources
 )
 
@@ -239,11 +240,15 @@ page = f"""<!doctype html>
   .srcpanel summary {{ font-family: "Space Grotesk", monospace; font-size: .78rem; color: var(--muted); cursor: pointer; user-select: none; padding: .2rem 0; }}
   .srcpanel summary:hover {{ color: var(--blue); }}
   #src-note {{ color: var(--blue); }}
-  .srchint {{ font-size: .75rem; color: var(--muted); margin: .3rem 0 .5rem; }}
-  .srcchips {{ display: flex; gap: .45rem; flex-wrap: wrap; }}
+  .srchint {{ font-size: .75rem; color: var(--muted); margin: .3rem 0 .5rem; display: flex; justify-content: space-between; align-items: center; gap: .6rem; }}
+  #src-showall {{ font-family: "Space Grotesk", monospace; font-size: .72rem; color: var(--blue); background: none; border: none; cursor: pointer; padding: 0; text-decoration: underline; white-space: nowrap; }}
+  .srcchips {{ display: flex; gap: .5rem; flex-wrap: wrap; }}
+  .srcrow {{ display: inline-flex; align-items: center; gap: .3rem; }}
   .srcchip {{ font-family: "Space Grotesk", monospace; font-size: .74rem; border: 1px solid var(--line); background: var(--card); color: var(--ink); border-radius: 999px; padding: .25rem .7rem; cursor: pointer; }}
   .srcchip[aria-pressed="false"] {{ color: var(--muted); background: transparent; text-decoration: line-through; opacity: .6; }}
   .srcchip:focus-visible {{ outline: 2px solid var(--blue); outline-offset: 2px; }}
+  .srconly {{ font-family: "Space Grotesk", monospace; font-size: .68rem; color: var(--muted); background: none; border: none; cursor: pointer; padding: 0 .2rem; text-decoration: underline; }}
+  .srconly:hover {{ color: var(--blue); }}
 
   .wrap {{ max-width: 720px; margin: 0 auto; padding: 1.2rem; }}
 
@@ -312,7 +317,7 @@ page = f"""<!doctype html>
   </div>
   <details class="srcpanel">
     <summary>Sources <span id="src-note"></span></summary>
-    <p class="srchint">Tap to hide a source</p>
+    <p class="srchint"><span>Tap to hide a source, or "only" to isolate one</span><button id="src-showall">Show all</button></p>
     <div class="srcchips">{chips}</div>
   </details>
   {items_html}
@@ -389,6 +394,22 @@ page = f"""<!doctype html>
     syncSrcChips();
     applyView();
   }}));
+
+  const allSources = Array.from(srcchips).map(c => c.dataset.src);
+  document.querySelectorAll('.srconly').forEach(btn => btn.addEventListener('click', () => {{
+    const keep = btn.dataset.src;
+    excluded = new Set(allSources.filter(s => s !== keep));
+    try {{ localStorage.setItem('excludedSources', JSON.stringify([...excluded])); }} catch (e) {{}}
+    syncSrcChips();
+    applyView();
+  }}));
+
+  document.getElementById('src-showall').addEventListener('click', () => {{
+    excluded = new Set();
+    try {{ localStorage.setItem('excludedSources', JSON.stringify([...excluded])); }} catch (e) {{}}
+    syncSrcChips();
+    applyView();
+  }});
 
   search.addEventListener('input', applyView);
   syncSrcChips();
