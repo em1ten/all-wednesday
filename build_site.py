@@ -246,7 +246,7 @@ page = f"""<!doctype html>
   .srcchip[aria-pressed="true"] {{ background: var(--blue); border-color: var(--blue); color: var(--badge-fg); }}
   .srcchip:focus-visible {{ outline: 2px solid var(--blue); outline-offset: 2px; }}
 
-  .wrap {{ max-width: 720px; margin: 0 auto; padding: 1.2rem; }}
+  .wrap {{ max-width: 720px; margin: 0 auto; padding: 1.2rem; padding-top: .6rem; }}
 
   .filters {{ display: flex; gap: .5rem; flex-wrap: wrap; padding-bottom: .4rem; }}
   .chip {{ font-family: "Space Grotesk", monospace; font-size: .78rem; border: 1px solid var(--line); background: var(--card); color: var(--muted); border-radius: 999px; padding: .3rem .8rem; cursor: pointer; }}
