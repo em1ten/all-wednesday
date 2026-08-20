@@ -87,6 +87,39 @@ chips = "".join(
     for s in sources
 )
 
+# ---- source quality tiers (lower = higher priority) ----
+# This is a judgment call, not a formula - adjust freely as sources
+# prove themselves better or worse over time.
+SOURCE_TIERS = {
+    # Tier 1: official - not "trustworthy", it's the actual source
+    "SWFC Official": 1, "SWFC YouTube": 1, "EFL Official": 1,
+    # Tier 2: national broadcast/press with real editorial standards
+    "BBC": 2, "Sky Sports": 2,
+    # Tier 3: dedicated regional/football press
+    "The Star": 3, "Yorkshire Post": 3, "Sheffield Tribune": 3,
+    # Tier 4: other national football press (also the default for
+    # anything not explicitly listed, so new/unknown sources land
+    # in the middle rather than accidentally ranking best or worst)
+    "Goal.com": 4, "talkSPORT": 4, "The Sun": 4, "Inside Futbol": 4,
+    "The72": 4, "hayters.com": 4,
+    # Tier 5: betting-tip content (not journalism) and opponent clubs'
+    # own sites (legitimate, but about the other team)
+    "Racing Post": 5, "William Hill News": 5, "Footy Accumulators": 5,
+    "Bradford City AFC": 5, "Leyton Orient FC": 5,
+}
+DEFAULT_TIER = 4
+
+
+def source_tier(source: str) -> int:
+    return SOURCE_TIERS.get(source, DEFAULT_TIER)
+
+
+ARTICLES.sort(key=lambda a: (
+    -datetime.fromisoformat(a["published"]).date().toordinal(),  # day bucket, newest first (matches day_bucket() exactly)
+    source_tier(a["source"]),                                     # then quality tier
+    -datetime.fromisoformat(a["published"]).timestamp(),          # then recency within tier
+))
+
 for a in ARTICLES:
     a["tag"] = tag_for(a)
 used_tags = sorted({a["tag"] for a in ARTICLES if a["tag"]})
@@ -110,11 +143,10 @@ fix_bits = []
 nxt = FIXTURES.get("next")
 if nxt:
     comp = f' <span class="fix-comp">({html.escape(nxt["competition"])})</span>' if nxt.get("competition") else ""
-    venue = f' · {html.escape(nxt["venue"])}' if nxt.get("venue") else ""
     fix_bits.append(
         f'<div class="fix"><span class="fix-label">Next</span>'
         f'{html.escape(nxt["home"])} v {html.escape(nxt["away"])}{comp}'
-        f'<span class="fix-sub">{fmt_kickoff(nxt["date"])}{venue}</span></div>'
+        f'<span class="fix-sub">{fmt_kickoff(nxt["date"])}</span></div>'
     )
 last = FIXTURES.get("last")
 if last and last.get("score"):
@@ -217,9 +249,7 @@ page = f"""<!doctype html>
   #theme-toggle:focus-visible {{ outline: 2px solid var(--ink); outline-offset: 2px; }}
 
   .followbar {{ background: var(--bg); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }}
-  .followbar summary {{ max-width: 720px; margin: 0 auto; padding: .45rem 1.2rem; font-family: "Space Grotesk", monospace; font-size: .74rem; color: var(--muted); cursor: pointer; user-select: none; }}
-  .followbar summary:hover {{ color: var(--blue); }}
-  .followbar .inner {{ max-width: 720px; margin: 0 auto; padding: 0 1.2rem .7rem; display: flex; gap: 1rem; flex-wrap: wrap; font-family: "Space Grotesk", monospace; font-size: .74rem; }}
+  .followbar .inner {{ max-width: 720px; margin: 0 auto; padding: .5rem 1.2rem; display: flex; gap: 1rem; flex-wrap: wrap; font-family: "Space Grotesk", monospace; font-size: .74rem; }}
   .followbar a {{ color: var(--blue); text-decoration: none; }}
   .followbar a:hover {{ text-decoration: underline; }}
 
@@ -292,10 +322,9 @@ page = f"""<!doctype html>
       <button id="theme-toggle" aria-label="Switch between light and dark mode">Dark</button>
     </div>
   </div>
-  <details class="followbar">
-    <summary>Official links</summary>
+  <div class="followbar">
     <div class="inner">{follow}</div>
-  </details>
+  </div>
 </header>
 
 {fixtures_html}
