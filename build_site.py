@@ -83,8 +83,7 @@ def day_bucket(iso: str) -> str:
 
 sources = sorted({a["source"] for a in ARTICLES})
 chips = "".join(
-    f'<span class="srcrow"><button class="srcchip" data-src="{html.escape(s)}" aria-pressed="true">{html.escape(s)}</button>'
-    f'<button class="srconly" data-src="{html.escape(s)}">only</button></span>'
+    f'<button class="srcchip" data-src="{html.escape(s)}" aria-pressed="false">{html.escape(s)}</button>'
     for s in sources
 )
 
@@ -242,13 +241,10 @@ page = f"""<!doctype html>
   #src-note {{ color: var(--blue); }}
   .srchint {{ font-size: .75rem; color: var(--muted); margin: .3rem 0 .5rem; display: flex; justify-content: space-between; align-items: center; gap: .6rem; }}
   #src-showall {{ font-family: "Space Grotesk", monospace; font-size: .72rem; color: var(--blue); background: none; border: none; cursor: pointer; padding: 0; text-decoration: underline; white-space: nowrap; }}
-  .srcchips {{ display: flex; gap: .5rem; flex-wrap: wrap; }}
-  .srcrow {{ display: inline-flex; align-items: center; gap: .3rem; }}
+  .srcchips {{ display: flex; gap: .45rem; flex-wrap: wrap; }}
   .srcchip {{ font-family: "Space Grotesk", monospace; font-size: .74rem; border: 1px solid var(--line); background: var(--card); color: var(--ink); border-radius: 999px; padding: .25rem .7rem; cursor: pointer; }}
-  .srcchip[aria-pressed="false"] {{ color: var(--muted); background: transparent; text-decoration: line-through; opacity: .6; }}
+  .srcchip[aria-pressed="true"] {{ background: var(--blue); border-color: var(--blue); color: var(--badge-fg); }}
   .srcchip:focus-visible {{ outline: 2px solid var(--blue); outline-offset: 2px; }}
-  .srconly {{ font-family: "Space Grotesk", monospace; font-size: .68rem; color: var(--muted); background: none; border: none; cursor: pointer; padding: 0 .2rem; text-decoration: underline; }}
-  .srconly:hover {{ color: var(--blue); }}
 
   .wrap {{ max-width: 720px; margin: 0 auto; padding: 1.2rem; }}
 
@@ -317,7 +313,7 @@ page = f"""<!doctype html>
   </div>
   <details class="srcpanel">
     <summary>Sources <span id="src-note"></span></summary>
-    <p class="srchint"><span>Tap to hide a source, or "only" to isolate one</span><button id="src-showall">Show all</button></p>
+    <p class="srchint"><span>Tap sources to filter to just those (tap again to remove)</span><button id="src-showall">Clear</button></p>
     <div class="srcchips">{chips}</div>
   </details>
   {items_html}
@@ -354,18 +350,20 @@ page = f"""<!doctype html>
   const srcNote = document.getElementById('src-note');
   let activeFilter = 'all';
 
-  let excluded = new Set();
-  try {{ excluded = new Set(JSON.parse(localStorage.getItem('excludedSources') || '[]')); }} catch (e) {{}}
+  // Multi-select: `selected` holds sources the user has actively chosen
+  // to filter down to. Empty set means no filter - show everything.
+  let selected = new Set();
+  try {{ selected = new Set(JSON.parse(localStorage.getItem('selectedSources') || '[]')); }} catch (e) {{}}
 
   function syncSrcChips() {{
-    srcchips.forEach(c => c.setAttribute('aria-pressed', excluded.has(c.dataset.src) ? 'false' : 'true'));
-    srcNote.textContent = excluded.size ? '(' + excluded.size + ' hidden)' : '';
+    srcchips.forEach(c => c.setAttribute('aria-pressed', selected.has(c.dataset.src) ? 'true' : 'false'));
+    srcNote.textContent = selected.size ? '(' + selected.size + ' selected)' : '';
   }}
 
   function applyView() {{
     const q = search.value.trim().toLowerCase();
     document.querySelectorAll('.item').forEach(item => {{
-      let show = !excluded.has(item.dataset.source);
+      let show = selected.size === 0 || selected.has(item.dataset.source);
       if (show && activeFilter === 'official') show = item.dataset.official === '1';
       else if (show && activeFilter.startsWith('tag:')) show = item.dataset.tag === activeFilter.slice(4);
       if (show && q) show = item.textContent.toLowerCase().includes(q);
@@ -389,24 +387,15 @@ page = f"""<!doctype html>
 
   srcchips.forEach(chip => chip.addEventListener('click', () => {{
     const s = chip.dataset.src;
-    if (excluded.has(s)) excluded.delete(s); else excluded.add(s);
-    try {{ localStorage.setItem('excludedSources', JSON.stringify([...excluded])); }} catch (e) {{}}
-    syncSrcChips();
-    applyView();
-  }}));
-
-  const allSources = Array.from(srcchips).map(c => c.dataset.src);
-  document.querySelectorAll('.srconly').forEach(btn => btn.addEventListener('click', () => {{
-    const keep = btn.dataset.src;
-    excluded = new Set(allSources.filter(s => s !== keep));
-    try {{ localStorage.setItem('excludedSources', JSON.stringify([...excluded])); }} catch (e) {{}}
+    if (selected.has(s)) selected.delete(s); else selected.add(s);
+    try {{ localStorage.setItem('selectedSources', JSON.stringify([...selected])); }} catch (e) {{}}
     syncSrcChips();
     applyView();
   }}));
 
   document.getElementById('src-showall').addEventListener('click', () => {{
-    excluded = new Set();
-    try {{ localStorage.setItem('excludedSources', JSON.stringify([...excluded])); }} catch (e) {{}}
+    selected = new Set();
+    try {{ localStorage.setItem('selectedSources', JSON.stringify([...selected])); }} catch (e) {{}}
     syncSrcChips();
     applyView();
   }});
