@@ -110,10 +110,11 @@ fix_bits = []
 nxt = FIXTURES.get("next")
 if nxt:
     comp = f' <span class="fix-comp">({html.escape(nxt["competition"])})</span>' if nxt.get("competition") else ""
+    venue = f' · {html.escape(nxt["venue"])}' if nxt.get("venue") else ""
     fix_bits.append(
         f'<div class="fix"><span class="fix-label">Next</span>'
         f'{html.escape(nxt["home"])} v {html.escape(nxt["away"])}{comp}'
-        f'<span class="fix-sub">{fmt_kickoff(nxt["date"])}</span></div>'
+        f'<span class="fix-sub">{fmt_kickoff(nxt["date"])}{venue}</span></div>'
     )
 last = FIXTURES.get("last")
 if last and last.get("score"):
