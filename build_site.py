@@ -52,10 +52,8 @@ def tag_for(article: dict) -> str | None:
 # Official accounts for the follow bar — links only, no embeds needed.
 OFFICIAL_LINKS = [
     ("Club site", "https://www.swfc.co.uk"),
-    ("X", "https://x.com/swfc"),
     ("Instagram", "https://www.instagram.com/swfcofficial"),
     ("YouTube", "https://www.youtube.com/user/officialswfc"),
-    ("Facebook", "https://www.facebook.com/sheffieldwednesday"),
     ("EFL", "https://www.efl.com"),
 ]
 
