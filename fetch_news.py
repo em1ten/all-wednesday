@@ -200,6 +200,8 @@ def fetch_all() -> list[dict]:
             if "news.google.com" in feed["url"]:
                 title = re.sub(r"\s+-\s+[^-]+$", "", title)
             excerpt = clean_html(e.get("summary", ""))[:EXCERPT_CHARS]
+            if excerpt and title and excerpt.lower().startswith(title.lower()[:50]):
+                excerpt = ""
             if not title or not e.get("link"):
                 continue
             if is_wrong_club(title, excerpt):
