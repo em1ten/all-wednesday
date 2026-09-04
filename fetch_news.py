@@ -66,13 +66,28 @@ MAX_AGE_DAYS = 7
 EXCERPT_CHARS = 400
 OUT = Path(__file__).parent / "articles.json"
 
+# ---- article description cache ----
+# Publishers' own og:description tags (the one-liners they write for
+# link previews - what Twitter/WhatsApp show). Cached by URL so each
+# article is only ever fetched once, not on every 15-minute run.
+# Conservatively tuned so this can never hang or noticeably slow a build.
+DESC_CACHE = Path(__file__).parent / "descriptions.json"
+DESC_MAX_NEW_PER_RUN = 12   # hard cap on new fetches per run
+DESC_TIMEOUT = 6            # seconds per request
+DESC_MAX_CHARS = 200
+
 # Normalise the scruffy names Google News reports so the source list
 # stays tidy (one chip per outlet, proper names not domains).
 SOURCE_ALIASES = {
     "thestar.co.uk": "The Star",
     "Sheffield Star": "The Star",
     "BBC Sport": "BBC",
+    "bbc.com": "BBC",
+    "bbc.co.uk": "BBC",
     "portsmouth.co.uk": "The News (Portsmouth)",
+    "yorkshirepost.co.uk": "Yorkshire Post",
+    "skysports.com": "Sky Sports",
+    "theguardian.com": "The Guardian",
     "Sheffield Wednesday FC": "SWFC Official",
     "The English Football League": "EFL Official",
 }
@@ -195,6 +210,14 @@ def fetch_all() -> list[dict]:
             if ts is None or (now - ts) > MAX_AGE_DAYS * 86400:
                 continue
             title = clean_html(e.get("title", ""))
+            # Some feeds scrape the publisher's own page furniture into the
+            # headline, e.g. "Real headline Club News | 58 minutes ago".
+            # Strip anything from a category label + relative timestamp on.
+            title = re.sub(
+                r"\s*(Club News|News|Video|Match Report|Interview)\s*\|\s*\d+\s+"
+                r"(second|minute|hour|day|week|month)s?\s+ago.*$",
+                "", title, flags=re.IGNORECASE,
+            ).strip()
             # Google News appends " - Publisher" to titles; strip it on any
             # feed that comes via Google News (incl. official site queries)
             if "news.google.com" in feed["url"]:
@@ -264,6 +287,74 @@ def load_previous() -> list[dict]:
     return kept
 
 
+def load_desc_cache() -> dict:
+    """URL -> description. Missing/corrupt file just means starting fresh."""
+    try:
+        return json.loads(DESC_CACHE.read_text())
+    except Exception:
+        return {}
+
+
+def prune_desc_cache(cache: dict, articles: list[dict]) -> dict:
+    """Drop cached descriptions for articles no longer in the feed, so the
+    file can't grow forever. Articles age out after MAX_AGE_DAYS anyway,
+    so anything not in the current set is genuinely gone."""
+    live_urls = {a["url"] for a in articles}
+    return {url: desc for url, desc in cache.items() if url in live_urls}
+
+
+def fetch_description(url: str) -> str | None:
+    """The publisher's own og:description - the summary they write for
+    link previews. Returns None on any failure; the card just shows the
+    headline alone, exactly as it does today."""
+    try:
+        r = requests.get(url, headers=FETCH_HEADERS, timeout=DESC_TIMEOUT, allow_redirects=True)
+        if r.status_code != 200:
+            return None
+        html_text = r.text[:200_000]  # cap: no need to scan a huge page
+        for pattern in (
+            r'<meta[^>]+property=["\']og:description["\'][^>]+content=["\']([^"\']+)["\']',
+            r'<meta[^>]+content=["\']([^"\']+)["\'][^>]+property=["\']og:description["\']',
+            r'<meta[^>]+name=["\']description["\'][^>]+content=["\']([^"\']+)["\']',
+        ):
+            m = re.search(pattern, html_text, flags=re.IGNORECASE)
+            if m:
+                desc = clean_html(m.group(1)).strip()
+                if len(desc) > 20:  # ignore uselessly short/placeholder text
+                    return desc[:DESC_MAX_CHARS]
+        return None
+    except Exception:
+        return None
+
+
+def add_descriptions(articles: list[dict]) -> None:
+    """Fill in descriptions from cache, fetching a capped number of new
+    ones per run. Mutates articles in place."""
+    cache = load_desc_cache()
+    cache = prune_desc_cache(cache, articles)
+
+    fetched = 0
+    for a in articles:
+        url = a["url"]
+        if url in cache:
+            a["description"] = cache[url] or ""
+            continue
+        if a.get("excerpt"):
+            continue          # already has a real summary, don't waste a fetch
+        if fetched >= DESC_MAX_NEW_PER_RUN:
+            continue          # cap reached; it'll be picked up next run
+        desc = fetch_description(url)
+        cache[url] = desc or ""   # cache failures too, so we don't retry forever
+        a["description"] = desc or ""
+        fetched += 1
+
+    try:
+        DESC_CACHE.write_text(json.dumps(cache, indent=2))
+    except Exception as e:
+        print(f"  [WARN] could not write description cache: {e}")
+    print(f"  descriptions: {fetched} newly fetched, {len(cache)} cached total")
+
+
 def main() -> None:
     fresh = fetch_all()
     previous = load_previous()
@@ -273,6 +364,7 @@ def main() -> None:
     # losing content. dedupe() collapses duplicates and MAX_AGE_DAYS
     # (applied during fetch) keeps genuinely old stories from lingering.
     articles = dedupe(fresh + previous)
+    add_descriptions(articles)
     OUT.write_text(json.dumps(articles, indent=2))
     print(f"Fetched {len(fresh)} fresh, {len(previous)} carried over, {len(articles)} total -> {OUT.name}")
 
