@@ -169,7 +169,7 @@ for a in ARTICLES:
         <div class="item-text">
           <div class="meta"><span class="time" data-published="{html.escape(a['published'])}">{rel_time(a['published'])}</span><span class="src">{html.escape(a['source'])}</span>{badge}{tagpill}</div>
           <a class="headline" href="{html.escape(a['url'])}" target="_blank" rel="noopener">{html.escape(a['title'])}</a>
-          {f'<p class="excerpt">{html.escape(a["excerpt"])}</p>' if a.get('excerpt') else ''}
+          {f'<p class="excerpt">{html.escape(a.get("description") or a.get("excerpt") or "")}</p>' if (a.get('description') or a.get('excerpt')) else ''}
         </div>
       </div>
     </article>"""
@@ -179,6 +179,8 @@ page = f"""<!doctype html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Cache-Control" content="no-cache, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
 <title>The Wednesday Times - Sheffield Wednesday news, no clutter</title>
 <meta name="description" content="Sheffield Wednesday headlines in one clean, ad-free feed. Links go straight to the original source.">
 <meta property="og:title" content="The Wednesday Times - Owls headlines, no clutter">
@@ -440,7 +442,7 @@ page = f"""<!doctype html>
   refreshTimes();
   setInterval(refreshTimes, 60000);
 
-  // ---- check for new content, show a gentle banner rather than a jarring auto-reload ----
+  // ---- check for new content ----
   // Compares the newest article's URL, not the raw build time - the site
   // rebuilds every ~15 min regardless of whether anything new was found,
   // so comparing build times alone would nag even with zero new stories.
@@ -448,12 +450,27 @@ page = f"""<!doctype html>
   const banner = document.getElementById('update-banner');
   const refreshBtn = document.getElementById('update-refresh');
 
-  async function checkForUpdate() {{
+  // On first load the HTML itself may have been served from cache
+  // (GitHub Pages/Cloudflare/browser), so silently self-correct rather
+  // than making the reader notice and click. Later checks show the
+  // banner instead - by then they're reading and a reload would be rude.
+  async function checkForUpdate(isInitialLoad) {{
     try {{
       const res = await fetch('version.json?t=' + Date.now(), {{ cache: 'no-store' }});
       const data = await res.json();
       if (data.latest && data.latest !== PAGE_LATEST) {{
+        if (isInitialLoad && !sessionStorage.getItem('twtReloaded')) {{
+          // Guard against reload loops: only ever auto-reload once per
+          // session, so a genuine mismatch can't trap someone in a cycle.
+          try {{ sessionStorage.setItem('twtReloaded', '1'); }} catch (e) {{}}
+          location.replace(location.pathname + '?refresh=' + Date.now());
+          return;
+        }}
         banner.classList.add('show');
+      }} else if (isInitialLoad) {{
+        // Page is current - clear the guard so a future stale load can
+        // still self-correct.
+        try {{ sessionStorage.removeItem('twtReloaded'); }} catch (e) {{}}
       }}
     }} catch (e) {{ /* offline or blocked - fail silently, try again next interval */ }}
   }}
@@ -461,9 +478,10 @@ page = f"""<!doctype html>
   refreshBtn.addEventListener('click', () => {{
     location.href = location.pathname + '?refresh=' + Date.now();
   }});
-  setInterval(checkForUpdate, 3 * 60000); // check every 3 minutes
+  checkForUpdate(true);                                   // immediately on load
+  setInterval(() => checkForUpdate(false), 3 * 60000);    // then every 3 minutes
   document.addEventListener('visibilitychange', () => {{
-    if (!document.hidden) checkForUpdate(); // also check whenever the tab regains focus
+    if (!document.hidden) checkForUpdate(false); // also whenever the tab regains focus
   }});
 </script>
 </body>
