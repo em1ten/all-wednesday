@@ -185,6 +185,42 @@ def is_off_topic(title: str, excerpt: str) -> bool:
     return not any(m in text for m in WEDNESDAY_MARKERS)
 
 
+# Known domains hijacked/repurposed to host illegal sports-streaming
+# spam (e.g. a compromised .ac.jp university subdomain, an unrelated
+# expired-and-repurposed .co.uk). This list is a backstop, not the main
+# defence - is_stream_spam() below catches the pattern generically so
+# new spam domains don't need adding here one at a time.
+SPAM_DOMAINS = {"rikkyo.ac.jp", "infrastructure-now.co.uk"}
+
+# Decorative Unicode used to dodge basic keyword filters: Fullwidth
+# Forms (e.g. "Ｌ Ｉ Ｖ Ｅ") and Mathematical Alphanumeric Symbols
+# (fake-bold "𝐓𝐕"). Legitimate football journalism essentially never
+# uses these - a very reliable spam signal on its own.
+_DECORATIVE_UNICODE = re.compile(r"[\uFF00-\uFFEF\U0001D400-\U0001D7FF]")
+
+
+def is_stream_spam(title: str, excerpt: str, source: str) -> bool:
+    """Illegal live-stream piracy spam: decorative unicode to dodge
+    filters, the same matchup phrase repeated several times (bot-
+    generated filler text), or a known hijacked spam domain."""
+    text = f"{title} {excerpt}"
+
+    if _DECORATIVE_UNICODE.search(text):
+        return True
+
+    for domain in SPAM_DOMAINS:
+        if domain in source.lower():
+            return True
+
+    # Real journalism doesn't repeat "Sheffield Wednesday" (or similar)
+    # three-plus times in one headline+excerpt - bot filler text does.
+    lower = text.lower()
+    if lower.count("sheffield wednesday") >= 3:
+        return True
+
+    return False
+
+
 def fetch_all() -> list[dict]:
     now = time.time()
     articles = []
@@ -233,6 +269,8 @@ def fetch_all() -> list[dict]:
                 continue
             source = feed["source"] if feed["official"] else real_source(e, feed["source"])
             source = SOURCE_ALIASES.get(source, source)
+            if is_stream_spam(title, excerpt, source):
+                continue
             articles.append(
                 {
                     "title": title,
