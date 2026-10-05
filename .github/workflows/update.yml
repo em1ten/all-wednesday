@@ -2,16 +2,14 @@ name: Update The Wednesday Times
 
 on:
   schedule:
-    - cron: "6,36 * * * *"  # refresh every 30 minutes (offset from :00/:30
-                            # to dodge GitHub's busiest scheduling moments)
-  workflow_dispatch:          # manual "run now" button
+    - cron: "6,36 * * * *"  # backup only - cron-job.org triggers a run every
+                            # 15 minutes; this catches anything it misses
+  workflow_dispatch:          # manual "run now" button (what cron-job.org calls)
   push:
     branches: [main]
 
-permissions:
-  contents: read
-  pages: write
-  id-token: write
+# Nothing by default; each job asks for only what it needs.
+permissions: {}
 
 concurrency:
   group: pages-clean   # renamed from "pages" to escape an old stuck run
@@ -19,24 +17,58 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
+    timeout-minutes: 10        # a hung step can never jam the queue for hours
+    permissions:
+      contents: read
+    steps:
+      # Actions are pinned to exact commits (the comment says which release)
+      # so a tag can't be moved under us.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Restore last run's data from the live site
+        run: python restore_state.py
+        timeout-minutes: 2
+
+      - name: Fetch news
+        run: python fetch_news.py
+        timeout-minutes: 4
+
+      - name: Fetch fixtures and results
+        run: python fetch_fixtures.py
+        timeout-minutes: 3
+
+      # Refuses (and fails the run, so nothing deploys) if there are too
+      # few stories to make a sensible page.
+      - name: Build site
+        run: python build_site.py
+
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: .
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - run: pip install feedparser requests
-      - run: python fetch_news.py
-      - run: python fetch_fixtures.py
-        env:
-          FOOTBALL_DATA_API_KEY: ${{ secrets.FOOTBALL_DATA_API_KEY }}
-      - run: python build_site.py
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: .
       - id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
