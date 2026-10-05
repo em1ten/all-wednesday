@@ -1,69 +1,60 @@
 # The Wednesday Times
 
-Every Sheffield Wednesday headline in one clean, fast, **ad-free** feed.
-Headlines and short excerpts only — every link goes straight to the
-original publisher, so their traffic and ad revenue stay theirs.
+Every Sheffield Wednesday headline in one clean, fast, **ad-free** feed:
+https://thewednesdaytimes.uk
+
+Headlines and short excerpts only — every link goes to the original
+publisher, so their traffic and ad revenue stay theirs. Newest first,
+nothing ranked; anything left out is counted on `/status.html`.
 
 ## How it works
 
 ```
-fetch_news.py   -> pulls RSS feeds (BBC SWFC + Google News query),
-                   dedupes near-identical stories, writes articles.json
-build_site.py   -> renders articles.json into index.html (static, no server)
+restore_state.py  -> downloads the last published articles/fixtures/descriptions
+                     from the live site (each Actions run starts from scratch)
+fetch_news.py     -> pulls the RSS feeds, filters junk (Sheffield United,
+                     off-topic, streaming spam, betting promos), dedupes,
+                     merges with last run, writes articles.json + status.json
+fetch_fixtures.py -> next match, live score, last result and form from the
+                     BBC's monthly fixtures pages, writes fixtures.json
+build_site.py     -> index.html, status.html, feed.xml, sitemap.xml,
+                     robots.txt, manifest.webmanifest, version.json
 ```
 
-No database, no backend, no hosting costs.
+`.github/workflows/update.yml` runs all of that and deploys to GitHub Pages.
+cron-job.org triggers it every 15 minutes; GitHub's own schedule is a backup.
+If there are too few stories to build a sensible page, the build stops and the
+live site keeps its last good version.
 
 ## Run locally
 
 ```bash
-pip install feedparser
-python3 fetch_news.py     # needs internet; replaces the sample articles.json
+pip install -r requirements.txt
+python3 fetch_news.py
+python3 fetch_fixtures.py
 python3 build_site.py
-open index.html           # or just double-click it
+open index.html
 ```
 
-## Deploy free (GitHub Pages, auto-updating)
+## Tests
 
-1. Create a GitHub repo and push this folder to it
-2. Repo Settings → Pages → Source: **GitHub Actions**
-3. Done. The included workflow (`.github/workflows/update.yml`) refetches
-   the news and redeploys **every 30 minutes**, free, forever.
-   Your site lives at `https://<yourusername>.github.io/<repo>/`
-4. Later: buy a domain (~£10/yr) and point it at Pages for a proper URL
+```bash
+pip install -r requirements-dev.txt
+python3 -m pytest -q
+```
+
+The Tests workflow runs these whenever code changes. They use saved copies of
+the feeds in `tests/fixtures/`, so they never touch the network.
 
 ## Adding sources
 
-Open `fetch_news.py` and add feeds to the `FEEDS` list. Good candidates:
-The Star's SWFC section, Yorkshire Live, fan sites with RSS. The Google
-News query already catches most outlets, but direct feeds are faster and
-cleaner. Anything without RSS can wait for v2 (page scraping — check each
-site's terms first).
+Add feeds to `FEEDS` in `fetch_news.py`. Set `"official": True` only for the
+club/league. Feeds that come via Google News get their publisher name from
+Google; direct feeds give better summaries and pictures.
 
 ## The rules that keep it clean and legal
 
 - Headlines + short excerpts + links out. Never full article text,
   never stripping ads off publishers' pages.
-- One "support" link, no ad networks. If you add a sponsor later, one
-  clearly-labelled slot, hand-picked.
+- One "support" link, no ad networks.
 - The footer disclaims any affiliation with the club.
-
-
-
-
-
-## New in this version
-
-- **Dark mode** — masthead toggle; follows system preference by default
-- **Official filter** — club site, official YouTube, EFL feeds with badges
-- **Fixtures strip** — next match, last result, league position. Free key
-  from https://www.football-data.org/client/register — add it as a repo
-  secret named `FOOTBALL_DATA_API_KEY` (Settings → Secrets → Actions) and
-  the workflow picks it up automatically. Without a key the strip shows
-  sample data.
-- **Story tags** — Transfers / Injuries / Match / Youth / Club news, auto-
-  detected from headlines; tune keywords in TAG_RULES in build_site.py
-- **Search** — filters headlines as you type, combines with any filter
-- **Your own RSS feed** — feed.xml, so people can follow in a reader
-- **Social link previews** — OG tags + share.png. Set SITE_URL in
-  build_site.py to your real URL after deploying.
