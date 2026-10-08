@@ -203,7 +203,7 @@ def write_atomic(path: Path, text: str) -> None:
 # =====================================================================
 
 FONTS_URL = ("https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900"
-             "&family=Bricolage+Grotesque:opsz,wght@12..96,800"
+             "&family=Bricolage+Grotesque:opsz,wght@12..96,400..800"
              "&family=IBM+Plex+Mono:wght@400;700&family=Newsreader:opsz,wght@6..72,600&display=swap")
 
 # Runs in <head> before first paint, so dark-mode readers never get a
@@ -257,7 +257,7 @@ PAGE_CSS = BASE_CSS + """
   #search { width: 100%; height: 44px; padding: 0 14px; font: 16px var(--sans); color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 12px; }
   #search::placeholder { color: var(--muted); }
 
-  .officialbar { max-width: 720px; margin: 0 auto; padding: 4px 16px 0; display: flex; flex-wrap: wrap; column-gap: 4px; font-family: var(--mono); font-size: 12px; }
+  .officialbar { max-width: 720px; margin: 0 auto; padding: 4px 16px 0; display: flex; flex-wrap: wrap; column-gap: 4px; font-family: var(--brand); font-size: 13.5px; font-weight: 600; }
   .officialbar a { color: var(--muted); text-decoration: none; text-transform: lowercase; padding: 8px 6px; }
   .officialbar a:first-child { padding-left: 0; }
   .officialbar a:hover { color: var(--accent); text-decoration: underline; }
