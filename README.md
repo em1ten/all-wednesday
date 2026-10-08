@@ -1,7 +1,9 @@
-# The Wednesday Times
+# Wednesday Wire
 
 Every Sheffield Wednesday headline in one clean, fast, **ad-free** feed:
-https://thewednesdaytimes.uk
+https://wednesdaywire.co.uk
+
+(Formerly The Wednesday Times; thewednesdaytimes.uk redirects here.)
 
 Headlines and short excerpts only — every link goes to the original
 publisher, so their traffic and ad revenue stay theirs. Newest first,

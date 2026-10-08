@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-The Wednesday Times — restore last run's data.
+Wednesday Wire — restore last run's data.
 
 Each GitHub Actions run starts from a fresh checkout of the repo, so the
 articles.json / descriptions.json / fixtures.json that the previous run
@@ -31,7 +31,7 @@ from build_site import SITE_URL
 HERE = Path(__file__).parent
 TIMEOUT = 15
 MAX_BYTES = 5_000_000
-UA = {"User-Agent": "TheWednesdayTimes-build/1.0 (+restore last run)"}
+UA = {"User-Agent": "WednesdayWire-build/1.0 (+restore last run)"}
 
 
 def _valid_articles(data) -> bool:

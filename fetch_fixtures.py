@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-The Wednesday Times — fixtures, results and form.
+Wednesday Wire — fixtures, results and form.
 
 Source: the BBC's public scores & fixtures pages for the club, which work
 whatever division Wednesday are in. We parse the JSON the BBC embeds in
@@ -33,7 +33,7 @@ OUT = HERE / "fixtures.json"
 STATUS = HERE / "status.json"
 BBC_BASE = "https://www.bbc.co.uk/sport/football/teams/sheffield-wednesday/scores-fixtures"
 TEAM_MATCH = "sheffield wednesday"
-UA = {"User-Agent": "Mozilla/5.0 (compatible; TheWednesdayTimes/1.0; fixtures strip)"}
+UA = {"User-Agent": "Mozilla/5.0 (compatible; WednesdayWire/1.0; fixtures strip)"}
 FETCH_TIMEOUT = 20
 FETCH_DEADLINE = 40
 MAX_BYTES = 5_000_000
@@ -325,7 +325,7 @@ def update_status(info: dict) -> None:
 
 def warn(message: str) -> None:
     if os.environ.get("GITHUB_ACTIONS"):
-        print(f"::warning title=The Wednesday Times::{message}")
+        print(f"::warning title=Wednesday Wire::{message}")
     else:
         print(f"  [WARN] {message}")
 

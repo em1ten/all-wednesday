@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-The Wednesday Times — feed fetcher.
+Wednesday Wire — feed fetcher.
 
 Pulls Sheffield Wednesday headlines from public RSS feeds, filters out the
 junk, dedupes, and writes articles.json for the site builder. Also writes
@@ -841,7 +841,7 @@ def warn(message: str) -> None:
     """A warning that shows up as a yellow annotation on the Actions run
     (and as plain text when run locally)."""
     if os.environ.get("GITHUB_ACTIONS"):
-        print(f"::warning title=The Wednesday Times::{message}")
+        print(f"::warning title=Wednesday Wire::{message}")
     else:
         print(f"  [WARN] {message}")
 

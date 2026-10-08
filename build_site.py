@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-The Wednesday Times — site builder.
+Wednesday Wire — site builder.
 
 Renders articles.json + fixtures.json into index.html: a clean, fast,
 ad-free static page with light/dark mode, filters, search and the
@@ -34,9 +34,10 @@ HERE = Path(__file__).parent
 UK = ZoneInfo("Europe/London")
 URL_SAFE_CHARS = ":/?#[]@!$&'()*+,;=%~-._"   # everything else in a link gets %-encoded
 
-# Set this to your real URL once deployed (needed for social link previews
-# and the RSS feed) e.g. "https://yourusername.github.io/all-wednesday"
-SITE_URL = "https://thewednesdaytimes.uk"
+# The live address (used for social link previews, the RSS feed, the
+# sitemap and restore_state.py). thewednesdaytimes.uk 301-redirects here.
+SITE_URL = "https://wednesdaywire.co.uk"
+SITE_NAME = "Wednesday Wire"
 
 # Free, cookie-free analytics: https://www.goatcounter.com/ (no signup cost).
 # Sign up, then put your code here (the bit before ".goatcounter.com").
@@ -202,6 +203,7 @@ def write_atomic(path: Path, text: str) -> None:
 # =====================================================================
 
 FONTS_URL = ("https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900"
+             "&family=Bricolage+Grotesque:opsz,wght@12..96,800"
              "&family=IBM+Plex+Mono:wght@400;700&family=Newsreader:opsz,wght@6..72,600&display=swap")
 
 # Runs in <head> before first paint, so dark-mode readers never get a
@@ -223,6 +225,7 @@ BASE_CSS = """
     --sans: "Archivo", system-ui, -apple-system, "Segoe UI", sans-serif;
     --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
     --serif: "Newsreader", Georgia, "Times New Roman", serif;
+    --brand: "Bricolage Grotesque", "Archivo", system-ui, -apple-system, "Segoe UI", sans-serif;
   }
   @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {""" + THEME_TOKENS_DARK + """ } }
   [data-theme="dark"] {""" + THEME_TOKENS_DARK + """ }
@@ -246,11 +249,10 @@ PAGE_CSS = BASE_CSS + """
   .topbar-inner { max-width: 720px; margin: 0 auto; display: flex; align-items: center; gap: 4px; padding: 6px 8px 6px 16px; }
   .brand { flex: 1; min-width: 0; font-size: inherit; font-weight: inherit; }
   .brand a { display: flex; align-items: baseline; gap: 10px; text-decoration: none; min-width: 0; }
-  .brand-mark { font-family: var(--mono); font-weight: 700; font-size: 22px; letter-spacing: -.02em; line-height: 44px; }
-  .brand-name { font-family: var(--mono); font-size: 11.5px; letter-spacing: .04em; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
-  .iconbtn, .textbtn { height: 44px; background: none; border: none; color: var(--ink); cursor: pointer; border-radius: 8px; }
-  .iconbtn { width: 44px; display: flex; align-items: center; justify-content: center; }
-  .textbtn { padding: 0 10px; font-family: var(--mono); font-size: 13px; }
+  .brand-mark { font-family: var(--brand); font-weight: 800; font-size: 22px; letter-spacing: -.01em; line-height: 44px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+  .iconbtn { height: 44px; width: 44px; background: none; border: none; color: var(--ink); cursor: pointer; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+  /* theme button: moon in light mode (tap for dark), sun in dark mode (tap for light) */
+  [data-theme="dark"] .icon-moon, :root:not([data-theme="dark"]) .icon-sun { display: none; }
   .searchbar { max-width: 720px; margin: 0 auto; padding: 0 16px 10px; }
   #search { width: 100%; height: 44px; padding: 0 14px; font: 16px var(--sans); color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 12px; }
   #search::placeholder { color: var(--muted); }
@@ -375,9 +377,10 @@ PAGE_JS = r"""
   // ---- theme (the starting theme is set in <head> before first paint) ----
   var toggle = $('theme-toggle');
   function themeLabel() {
-    var dark = root.getAttribute('data-theme') === 'dark';
-    toggle.textContent = dark ? 'light' : 'dark';
-    toggle.setAttribute('aria-label', dark ? 'Switch to light mode' : 'Switch to dark mode');
+    // the sun/moon icon swaps in CSS; only the accessible name changes here
+    var label = root.getAttribute('data-theme') === 'dark' ? 'Switch to light mode' : 'Switch to dark mode';
+    toggle.setAttribute('aria-label', label);
+    toggle.setAttribute('title', label);
   }
   themeLabel();
   toggle.addEventListener('click', function () {
@@ -647,6 +650,13 @@ SEARCH_ICON = ('<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stro
                'stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">'
                '<circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>')
 
+_ICON_ATTRS = ('width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" '
+               'stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"')
+THEME_ICONS = (f'<svg class="icon-moon" {_ICON_ATTRS}><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"></path></svg>'
+               f'<svg class="icon-sun" {_ICON_ATTRS}><circle cx="12" cy="12" r="4"></circle>'
+               '<path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2'
+               'M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path></svg>')
+
 
 # =====================================================================
 # Rendering
@@ -811,8 +821,8 @@ def render_page(articles: list[dict], fixtures: dict, now: datetime) -> str:
     goat = (f'<script data-goatcounter="https://{esc(GOATCOUNTER_CODE)}.goatcounter.com/count" '
             f'async src="https://gc.zgo.at/count.js"></script>') if GOATCOUNTER_CODE else ""
     ld = js_str({
-        "@context": "https://schema.org", "@type": "WebSite", "name": "The Wednesday Times",
-        "alternateName": "TWT", "url": f"{SITE_URL}/",
+        "@context": "https://schema.org", "@type": "WebSite", "name": SITE_NAME,
+        "alternateName": "The Wednesday Times", "url": f"{SITE_URL}/",
         "description": "Sheffield Wednesday headlines from across the web in one clean, ad-free feed.",
         "inLanguage": "en-GB",
     })
@@ -837,21 +847,21 @@ def render_page(articles: list[dict], fixtures: dict, now: datetime) -> str:
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta http-equiv="Content-Security-Policy" content="{csp_attr(csp)}">
-<title>The Wednesday Times - Sheffield Wednesday news, no clutter</title>
+<title>{SITE_NAME} - Sheffield Wednesday news, no clutter</title>
 <meta name="description" content="Sheffield Wednesday headlines in one clean, ad-free feed. Links go straight to the original source.">
 <link rel="canonical" href="{SITE_URL}/">
-<meta property="og:site_name" content="The Wednesday Times">
-<meta property="og:title" content="The Wednesday Times - Owls headlines, no clutter">
+<meta property="og:site_name" content="{SITE_NAME}">
+<meta property="og:title" content="{SITE_NAME} - Owls headlines, no clutter">
 <meta property="og:description" content="Sheffield Wednesday news from multiple sources in one clean, ad-free feed. Free, updated every 15 minutes.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="{SITE_URL}/">
 <meta property="og:image" content="{SITE_URL}/share.png">
-<meta property="og:image:alt" content="The Wednesday Times">
+<meta property="og:image:alt" content="{SITE_NAME}">
 <meta property="og:locale" content="en_GB">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#171717" media="(prefers-color-scheme: dark)">
-<link rel="alternate" type="application/rss+xml" title="The Wednesday Times" href="{SITE_URL}/feed.xml">
+<link rel="alternate" type="application/rss+xml" title="{SITE_NAME}" href="{SITE_URL}/feed.xml">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="manifest" href="manifest.webmanifest">
@@ -867,9 +877,9 @@ def render_page(articles: list[dict], fixtures: dict, now: datetime) -> str:
 <a class="skip" href="#feed">Skip to headlines</a>
 <header class="topbar">
   <div class="topbar-inner">
-    <h1 class="brand"><a href="/"><span class="brand-mark">twt</span> <span class="brand-name">the wednesday times</span></a></h1>
+    <h1 class="brand"><a href="/"><span class="brand-mark">{SITE_NAME}</span></a></h1>
     <button type="button" id="search-toggle" class="iconbtn" aria-label="Search headlines" aria-expanded="false" aria-controls="searchbar">{SEARCH_ICON}</button>
-    <button type="button" id="theme-toggle" class="textbtn" aria-label="Switch to dark mode">dark</button>
+    <button type="button" id="theme-toggle" class="iconbtn" aria-label="Switch to dark mode" title="Switch to dark mode">{THEME_ICONS}</button>
   </div>
   <div id="searchbar" class="searchbar" hidden>
     <label for="search" class="sr-only">Search headlines</label>
@@ -960,7 +970,7 @@ def render_status(status: dict, articles: list[dict], now: datetime) -> str:
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta http-equiv="Content-Security-Policy" content="{csp_attr(csp)}">
 <meta name="robots" content="noindex">
-<title>Feed status - The Wednesday Times</title>
+<title>Feed status - {SITE_NAME}</title>
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <style>{STATUS_CSS}</style>
 </head>
@@ -1001,7 +1011,7 @@ def render_feed_xml(articles: list[dict], now: datetime) -> str:
     return f"""<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
 <channel>
-  <title>The Wednesday Times</title>
+  <title>{SITE_NAME}</title>
   <link>{SITE_URL}/</link>
   <atom:link href="{SITE_URL}/feed.xml" rel="self" type="application/rss+xml"/>
   <description>Sheffield Wednesday headlines in one clean feed. Links go to the original publishers.</description>
@@ -1026,8 +1036,8 @@ def render_sitemap(now: datetime) -> str:
 
 def render_manifest() -> str:
     return json.dumps({
-        "name": "The Wednesday Times",
-        "short_name": "TWT",
+        "name": SITE_NAME,
+        "short_name": "Wed Wire",
         "description": "Sheffield Wednesday headlines in one clean, ad-free feed.",
         "start_url": "/",
         "scope": "/",
