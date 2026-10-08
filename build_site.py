@@ -325,7 +325,7 @@ PAGE_CSS = BASE_CSS + """
   .badge-official { font-weight: 800; font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--accent); border: 1.5px solid var(--accent); border-radius: 4px; padding: 0 5px; }
   .badge-new { display: none; font-weight: 800; font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--on-accent); background: var(--accent); border-radius: 4px; padding: 1px 6px; }
   .is-new .badge-new { display: inline-block; }
-  .headline { display: block; margin-top: 4px; font-weight: 700; font-stretch: 94%; font-size: 17.5px; line-height: 1.28; color: var(--ink); text-decoration: none; }
+  .headline { display: block; margin-top: 4px; font: 600 18.5px/1.24 var(--serif); color: var(--ink); text-decoration: none; }
   .excerpt { font-size: 14.5px; line-height: 1.45; color: var(--muted); margin-top: 4px; }
   .thumb { margin-top: 6px; width: 72px; height: 72px; object-fit: cover; border-radius: 8px; flex-shrink: 0; background: var(--line); }
 
