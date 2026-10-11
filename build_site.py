@@ -262,9 +262,9 @@ PAGE_CSS = BASE_CSS + """
   .officialbar a:first-child { padding-left: 0; }
   .officialbar a:hover { color: var(--accent); text-decoration: underline; }
 
-  .update-banner { width: fit-content; max-width: calc(100% - 32px); margin: 0 auto; background: var(--ink); color: var(--bg); border-radius: 999px; padding: 6px 6px 6px 16px; display: flex; align-items: center; gap: 10px; font-family: var(--mono); font-size: 13px; box-shadow: 0 4px 16px rgba(0,0,0,.2); opacity: 0; visibility: hidden; height: 0; margin-top: 0; padding-top: 0; padding-bottom: 0; overflow: hidden; }
+  .update-banner { width: fit-content; max-width: calc(100% - 32px); margin: 0 auto; background: var(--ink); color: var(--bg); border-radius: 999px; padding: 6px 6px 6px 16px; display: flex; align-items: center; gap: 10px; font-family: var(--brand); font-weight: 600; font-size: 13.5px; box-shadow: 0 4px 16px rgba(0,0,0,.2); opacity: 0; visibility: hidden; height: 0; margin-top: 0; padding-top: 0; padding-bottom: 0; overflow: hidden; }
   .update-banner.show { opacity: 1; visibility: visible; height: auto; margin-top: 10px; padding-top: 6px; padding-bottom: 6px; }
-  .update-banner button { background: var(--accent); color: var(--on-accent); border: none; border-radius: 999px; min-height: 36px; padding: 0 14px; font: 700 13px var(--sans); cursor: pointer; }
+  .update-banner button { background: var(--accent); color: var(--on-accent); border: none; border-radius: 999px; min-height: 36px; padding: 0 14px; font: 700 13.5px var(--brand); cursor: pointer; }
 
   .matchbar { max-width: 720px; margin: 0 auto; padding: 0 16px; }
   .mrow { display: flex; gap: 12px; align-items: baseline; padding: 10px 0; border-bottom: 1px solid var(--line); }
