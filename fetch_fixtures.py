@@ -32,6 +32,7 @@ HERE = Path(__file__).parent
 OUT = HERE / "fixtures.json"
 STATUS = HERE / "status.json"
 BBC_BASE = "https://www.bbc.co.uk/sport/football/teams/sheffield-wednesday/scores-fixtures"
+RESULTS_FILTER = "?filter=results"   # the month-in-progress page defaults to fixtures only
 TEAM_MATCH = "sheffield wednesday"
 UA = {"User-Agent": "Mozilla/5.0 (compatible; WednesdayWire/1.0; fixtures strip)"}
 FETCH_TIMEOUT = 20
@@ -344,11 +345,21 @@ def main(now: datetime | None = None) -> int:
         except Exception as e:
             pages.append({"url": url, "ok": False, "error": (str(e) or type(e).__name__)[:200]})
 
-    for months in (0, 1):
-        load(month_url(*shift_month(today_uk, months)))
+    # Once a month is under way the BBC splits it into separate "Results" and
+    # "Fixtures" views, and the plain month URL then shows only the fixtures
+    # still to come - so that month's results have to be asked for by name.
+    # A month that isn't split ignores the parameter and returns the same page.
+    this_month = month_url(*shift_month(today_uk, 0))
+    load(this_month)
+    load(this_month + RESULTS_FILTER)
+    load(month_url(*shift_month(today_uk, 1)))
     summary = summarise(matches, now)
     if len(summary["form"]) < FORM_GAMES or not summary["last"]:
-        load(month_url(*shift_month(today_uk, -1)))
+        prev_month = month_url(*shift_month(today_uk, -1))
+        load(prev_month)
+        summary = summarise(matches, now)
+        if len(summary["form"]) < FORM_GAMES or not summary["last"]:
+            load(prev_month + RESULTS_FILTER)   # in case that month is split too
     if not matches:
         load(BBC_BASE)   # the plain page, in case the month pages ever change
     summary = summarise(matches, now)
