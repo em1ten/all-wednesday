@@ -325,6 +325,16 @@ SPAM_DOMAINS = {"rikkyo.ac.jp", "infrastructure-now.co.uk"}
 # (fake-bold "𝐓𝐕"). Legitimate football journalism essentially never
 # uses these - a very reliable spam signal on its own.
 _DECORATIVE_UNICODE = re.compile(r"[＀-￯\U0001D400-\U0001D7FF]")
+# East Asian quote brackets wrapped round English keywords, e.g.
+# "『LIVeSTREAMS』 Sheffield Wednesday vs Plymouth Argyle" - another way
+# of dressing a headline up to dodge keyword filters.
+_CJK_BRACKETS = re.compile(r"[「-】〔-〛]")
+# A publisher name written in Chinese/Japanese/Korean script (a hijacked
+# overseas site) on an English "X vs Y" fixture headline.
+_CJK_SCRIPT = re.compile(r"[぀-ヿ㐀-䶿一-鿿가-힯]")
+# "livestream(s)" as one word, or "live soccer", on a fixture headline.
+# Real guides write "live stream, TV channel" and never "live soccer".
+_STREAM_MATCHUP_WORDS = re.compile(r"\blivestreams?\b|\blive\s+soccer\b", re.IGNORECASE)
 
 # Piracy wording. Real "how to watch" guides say "live stream, TV
 # channel"; pirates add "free", "reddit", "HD", "(LIVE^NOW)" and so on.
@@ -359,6 +369,12 @@ def is_stream_spam(title: str, excerpt: str, source: str) -> bool:
         return True
     if _STREAM_SPAM_WORDS.search(text):
         return True
+    if _CJK_BRACKETS.search(title):
+        return True
+    if _MATCHUP.search(lower) and (
+        _STREAM_MATCHUP_WORDS.search(text) or _CJK_SCRIPT.search(source)
+    ):
+        return True
     if _ACADEMIC_HOST.search(src) and _MATCHUP.search(lower):
         return True
     return False
@@ -375,13 +391,20 @@ BETTING_SOURCES = {
     "ladbrokes", "coral", "boylesports", "betvictor",
 }
 _BETTING_WORDS = re.compile(
-    r"\bfree bets?\b|\bbet ?builder\b|\bbetting tips?\b|\bacca tips?\b|\bsign[- ]up offer\b",
+    r"\bfree bets?\b|\bbet ?builder\b|\bbetting tips?\b|\bacca tips?\b|\bsign[- ]up offer\b"
+    r"|\bbest bets?\b",
     re.IGNORECASE,
+)
+# The bookmaker's name anywhere in the source, as a whole word, so
+# "news.bet365.com" and "Sports & Betting News - bet365" both count
+# (Google News labels the same site several ways).
+_BETTING_SOURCE = re.compile(
+    r"(?<![a-z0-9])(?:" + "|".join(re.escape(s) for s in sorted(BETTING_SOURCES)) + r")(?![a-z0-9])"
 )
 
 
 def is_betting_promo(title: str, source: str) -> bool:
-    return source.lower().strip() in BETTING_SOURCES or bool(_BETTING_WORDS.search(title))
+    return bool(_BETTING_SOURCE.search(source.lower()) or _BETTING_WORDS.search(title))
 
 
 # ---- headline clean-up ----
@@ -452,6 +475,15 @@ def shorten(text: str, limit: int) -> str:
     return cut.rstrip(" ,;:-") + "…"
 
 
+# Official feeds normally skip the "is this about Wednesday?" check (see
+# is_off_topic). The EFL feed is the exception: it is a search of efl.com
+# for the club's name, so it also returns league-wide posts that only
+# mention Wednesday in passing (referee appointments, Fantasy EFL, TV
+# guides). For these sources the headline itself must name the club.
+# Empty the set to let the league-wide posts back in.
+HEADLINE_MUST_NAME_CLUB = {"EFL Official"}
+
+
 def filter_reason(title: str, excerpt: str, source: str, official: bool) -> str | None:
     """Why a story is being left out, or None to keep it. The reason
     names are what /status.html counts."""
@@ -464,6 +496,8 @@ def filter_reason(title: str, excerpt: str, source: str, official: bool) -> str 
     if is_wrong_club(title, excerpt):
         return "sheffield_united"
     if not official and is_off_topic(title, excerpt):
+        return "off_topic"
+    if source in HEADLINE_MUST_NAME_CLUB and not mentions_wednesday(title):
         return "off_topic"
     return None
 
